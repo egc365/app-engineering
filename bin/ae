@@ -1,0 +1,372 @@
+#!/usr/bin/env node
+// ae: the one command of the application engineering toolkit.
+//
+//   ae list [--status s] [--category c] [--class <change class>] [--repo <app>] [--json]
+//                                         tools; with --repo, each tool's status for that app
+//                                         (an app tool with no command there is blocked)
+//   ae show <id>                          the manifest entry (JSON)
+//   ae classes                            change classes: the gates and tools each needs
+//   ae run <id> --repo <app> [--dry] [-- args]
+//                                         run one tool with the app's adapter; writes a receipt
+//   ae gates --repo <app> (--changed <path>... | --base <ref>) [--plan] [--json]
+//                                         the gates the change requires, each bound tool run,
+//                                         a receipt per gate and one build receipt
+//   ae verify <build receipt> --repo <app> [--allow-dirty]
+//                                         the receipt still holds: hashes, commit, adapter,
+//                                         current rules, every required gate PASS
+//   ae selftest [id ...] [--repo <app>]   the catalog lint and every detector's planted-defect
+//                                         proof; with --repo, the app tools' own self-tests
+//   ae adapter --repo <app> [--live]      validate an app's adapter and show its gate bindings;
+//                                         --live launches the app and checks every ready probe
+//   ae install-skill [--check]            install skill/SKILL.md for Claude, Codex and Grok
+//
+// Exit codes: 0 pass; 1 a gate, detector or self-test is red; 2 usage or could
+// not run; 3 blocked: the tool is pending or the app provides no command.
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { loadAdapter, expand } from '../lib/adapter.mjs';
+import { newRun } from '../lib/receipt.mjs';
+import { runTool, resolveTool, runGates, verifyBuild, changedPaths } from '../gates/gates.mjs';
+
+const TOOLKIT = path.resolve(path.dirname(fs.realpathSync(fileURLToPath(import.meta.url))), '..');
+const MANIFEST = JSON.parse(fs.readFileSync(path.join(TOOLKIT, 'manifest.json'), 'utf8'));
+const TOOLS = MANIFEST.tools;
+
+function die(message, code = 2) {
+  process.stderr.write(`ae: ${message}\n`);
+  process.exit(code);
+}
+
+function take(argv, flag) {
+  const i = argv.indexOf(flag);
+  if (i < 0) return null;
+  const v = argv[i + 1];
+  if (v === undefined || v.startsWith('--')) die(`${flag} needs a value`);
+  argv.splice(i, 2);
+  return v;
+}
+
+// --flag v1 v2 ... up to the next --flag.
+function takeMany(argv, flag) {
+  const i = argv.indexOf(flag);
+  if (i < 0) return null;
+  let j = i + 1;
+  while (j < argv.length && !argv[j].startsWith('--')) j += 1;
+  const vals = argv.slice(i + 1, j);
+  if (!vals.length) die(`${flag} needs at least one value`);
+  argv.splice(i, j - i);
+  return vals;
+}
+
+function bool(argv, flag) {
+  const i = argv.indexOf(flag);
+  if (i < 0) return false;
+  argv.splice(i, 1);
+  return true;
+}
+
+function tool(id) {
+  const t = TOOLS.find((x) => x.id === id);
+  if (!t) die(`no tool ${JSON.stringify(id)}; \`ae list\` names them`);
+  return t;
+}
+
+function adapterFor(repo) {
+  if (!repo) die('--repo <path> is required');
+  const a = loadAdapter(repo, TOOLKIT);
+  if (!a.adapter) die(a.problems.join('; '));
+  if (a.problems.length) die(`adapter ${a.file} is invalid:\n  ${a.problems.join('\n  ')}`);
+  return a;
+}
+
+// A tool's status for one app: an app tool the adapter gives no command is blocked.
+function statusFor(t, a) {
+  if (!a || t.status !== 'adapter') return t.status;
+  const cfg = (a.adapter.tools || {})[t.id] || {};
+  return Array.isArray(cfg.command) && cfg.command.length ? 'adapter' : 'blocked';
+}
+
+const label = (t, status) => (status === 'pending' ? `pending ${t.card}` : status);
+
+function list(argv) {
+  const status = take(argv, '--status');
+  const category = take(argv, '--category');
+  const cls = take(argv, '--class');
+  const repo = take(argv, '--repo');
+  const json = bool(argv, '--json');
+  const a = repo ? adapterFor(repo) : null;
+  let rows = TOOLS.map((t) => ({ ...t, status: statusFor(t, a) }));
+  if (status) rows = rows.filter((t) => t.status === status);
+  if (category) rows = rows.filter((t) => t.category === category);
+  if (cls) {
+    const wanted = MANIFEST.change_classes[cls];
+    if (!wanted) die(`no change class ${cls}; \`ae classes\` names them`);
+    rows = rows.filter((t) => wanted.tools.includes(t.id));
+  }
+  if (json) { process.stdout.write(JSON.stringify(rows, null, 2) + '\n'); return 0; }
+  for (const t of rows) process.stdout.write(`${t.id.padEnd(30)} ${label(t, t.status).padEnd(15)} ${t.kind.padEnd(8)} ${t.runtime.padEnd(7)} ${t.name}\n`);
+  const counts = {};
+  for (const t of rows) counts[t.status] = (counts[t.status] || 0) + 1;
+  process.stdout.write(`\n${rows.length} tools${a ? ` for ${a.adapter.app}` : ''}: ${Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(', ')}\n`);
+  return 0;
+}
+
+function classes() {
+  for (const [name, c] of Object.entries(MANIFEST.change_classes)) process.stdout.write(`${name.padEnd(18)} gates: ${c.gates.join(', ') || 'none'}\n${''.padEnd(18)} tools: ${c.tools.join(', ') || 'none'}\n`);
+  return 0;
+}
+
+function toolEnv(a, t) {
+  const env = { ...process.env, AE_TOOLKIT: TOOLKIT, AE_REPO: a.ctx.repo, AE_TOOL: t ? t.id : '' };
+  if (a.adapter.launch && a.adapter.launch.display) env.DISPLAY = expand(String(a.adapter.launch.display), a.ctx);
+  return env;
+}
+
+// Launches the app (on the adapter's display) for a tool that needs it running.
+function appStarter(a) {
+  if (!a.adapter.launch) return null;
+  return async () => {
+    const expanded = expand(a.adapter, a.ctx);
+    if (String(expanded.launch.display) !== ':99' && !process.env.AE_ALLOW_DISPLAY) throw new Error(`refusing to launch on display ${expanded.launch.display}; the toolkit launches on :99 only`);
+    const { startApp } = await import('../lib/probe.mjs');
+    return startApp(expanded, { repo: a.ctx.repo, log: (m) => process.stderr.write(`${m}\n`) });
+  };
+}
+
+const runsDir = (a) => path.join(a.ctx.repo, a.adapter.evidenceDir || '.ae', 'runs');
+
+async function run(argv) {
+  const id = argv.shift();
+  if (!id) die('ae run <id> --repo <path> [-- args]');
+  const t = tool(id);
+  const dash = argv.indexOf('--');
+  const extra = dash >= 0 ? argv.splice(dash).slice(1) : [];
+  const repo = take(argv, '--repo');
+  const dry = bool(argv, '--dry');
+  if (argv.length) die(`unexpected ${argv.join(' ')}; tool arguments go after --`);
+  if (t.cli) die(`${t.id} runs as \`${t.cli}\``);
+  const a = adapterFor(repo);
+  const how = resolveTool(t, a, TOOLKIT, extra);
+  if (how.blocked) die(`BLOCKED ${how.blocked}`, 3);
+  process.stderr.write(`ae run ${t.id}: ${how.argv.join(' ')}${how.needsApp ? ' (with the app running)' : ''}\n`);
+  if (dry) return 0;
+  const out = await runTool(t, a, { toolkit: TOOLKIT, env: toolEnv(a, t), extra, echo: process.stdout, startApp: appStarter(a), log: (m) => process.stderr.write(`${m}\n`) });
+  const { file, receipt } = newRun(a.ctx.repo, runsDir(a), 'run', out, a.file);
+  process.stderr.write(`ae run ${t.id}: ${out.status}${out.reason ? ` (${out.reason})` : ''}, run ${receipt.run_id} (${path.relative(a.ctx.repo, file)})\n`);
+  if (out.status === 'BLOCKED') return 3;
+  return out.exit_code === null || out.exit_code === undefined ? 1 : out.exit_code;
+}
+
+async function gates(argv) {
+  const repo = take(argv, '--repo');
+  const changed = takeMany(argv, '--changed');
+  const base = take(argv, '--base');
+  const plan = bool(argv, '--plan');
+  const json = bool(argv, '--json');
+  if (argv.length) die(`unexpected ${argv.join(' ')}`);
+  if (!changed && !base) die('ae gates --repo <app> (--changed <path>... | --base <ref>)');
+  const a = adapterFor(repo);
+  const paths = changed || changedPaths(a.ctx.repo, base);
+  const r = await runGates(paths, { manifest: MANIFEST, a, toolkit: TOOLKIT, env: toolEnv(a, null), echo: process.stderr, startApp: appStarter(a), plan, log: (m) => process.stderr.write(`ae gates: ${m}\n`) });
+  if (json) process.stdout.write(JSON.stringify({ receipt: r.receipt, run_id: r.run_id, ...r.data }, null, 2) + '\n');
+  else {
+    process.stdout.write(`classes: ${r.data.classes.join(', ') || 'none'}; required gates: ${r.data.required.join(', ') || 'none'}\n`);
+    for (const o of r.data.outcomes) {
+      const detail = plan ? o.tools.map((x) => `${x.tool} ${x.status}${x.reason ? ` (${x.reason})` : ''}`).join('; ') || o.reason : `run ${o.run_id}`;
+      process.stdout.write(`${o.status.padEnd(9)} ${o.gate.padEnd(12)} ${detail}\n`);
+    }
+    process.stdout.write(`${r.data.result}${r.receipt ? ` build receipt ${path.relative(a.ctx.repo, r.receipt)}` : ''}\n`);
+  }
+  if (plan) return 0;
+  return r.data.result === 'PASS' ? 0 : 1;
+}
+
+function verify(argv) {
+  const repo = take(argv, '--repo');
+  const allowDirty = bool(argv, '--allow-dirty');
+  const file = argv.shift();
+  if (!file || argv.length) die('ae verify <build receipt> --repo <app> [--allow-dirty]');
+  const a = adapterFor(repo);
+  const problems = verifyBuild(path.resolve(a.ctx.repo, file), { manifest: MANIFEST, a, allowDirty });
+  for (const p of problems) process.stdout.write(`problem ${p}\n`);
+  process.stdout.write(`${problems.length ? 'FAIL' : 'PASS'} ${file}\n`);
+  return problems.length ? 1 : 0;
+}
+
+// The catalog holds together: ids, statuses, files, classes, gates, crosswalk,
+// checklist; no engine or self-test is orphaned. Returns problems.
+export function lintCatalog() {
+  const problems = [];
+  const ids = new Set();
+  const STATUSES = new Set(['available', 'adapter', 'pending', 'blocked']);
+  const referenced = new Set();
+  for (const t of TOOLS) {
+    if (ids.has(t.id)) problems.push(`duplicate id ${t.id}`);
+    ids.add(t.id);
+    if (!STATUSES.has(t.status)) problems.push(`${t.id}: status ${t.status} is not one of ${[...STATUSES].join(', ')}`);
+    if (t.status === 'pending' && !t.card) problems.push(`${t.id}: pending names no card`);
+    if (t.status === 'available') {
+      for (const k of ['path', 'self_test']) if (!t[k] || !fs.existsSync(path.join(TOOLKIT, t[k]))) problems.push(`${t.id}: available but ${k} ${t[k]} is missing`);
+    }
+    for (const k of ['path', 'self_test', 'reference']) if (t[k] && !String(t[k]).includes(' ') && fs.existsSync(path.join(TOOLKIT, t[k]))) referenced.add(t[k]);
+  }
+  for (const [c, v] of Object.entries(MANIFEST.change_classes)) {
+    for (const g of v.gates) if (!MANIFEST.gates[g]) problems.push(`class ${c}: unknown gate ${g}`);
+    for (const id of v.tools) if (!ids.has(id)) problems.push(`class ${c}: unknown tool ${id}`);
+  }
+  for (const [g, v] of Object.entries(MANIFEST.gates)) for (const id of v.tools) if (!ids.has(id)) problems.push(`gate ${g}: unknown tool ${id}`);
+  for (const r of MANIFEST.default_change_rules) for (const c of r.classes) if (!MANIFEST.change_classes[c]) problems.push(`default rule ${r.id}: unknown class ${c}`);
+  for (const c of MANIFEST.default_fallback_classes) if (!MANIFEST.change_classes[c]) problems.push(`default fallback: unknown class ${c}`);
+  const cw = JSON.parse(fs.readFileSync(path.join(TOOLKIT, 'spec-crosswalk.json'), 'utf8'));
+  if (cw.items.length !== 26 || new Set(cw.items.map((i) => i.item)).size !== 26) problems.push(`spec-crosswalk: ${cw.items.length} items, want the 26 of the owner's spec`);
+  for (const i of cw.items) for (const id of i.tool_ids) if (!ids.has(id)) problems.push(`spec-crosswalk item ${i.item}: unknown tool ${id}`);
+  const steps = JSON.parse(fs.readFileSync(path.join(TOOLKIT, 'acceptance', 'acceptance.json'), 'utf8')).steps;
+  if (steps.length !== 36 || new Set(steps.map((s) => s.id)).size !== 36) problems.push(`acceptance.json: ${steps.length} steps, want 36 unique`);
+  const skip = new Set(['lib', 'bin', 'node_modules', 'skill', '.scratch', '.git']);
+  for (const d of fs.readdirSync(TOOLKIT, { withFileTypes: true })) {
+    if (!d.isDirectory() || skip.has(d.name)) continue;
+    for (const f of fs.readdirSync(path.join(TOOLKIT, d.name))) {
+      const rel = `${d.name}/${f}`;
+      if (/\.(mjs|html)$/.test(f) && !referenced.has(rel)) problems.push(`orphan ${rel}: no manifest entry names it`);
+    }
+  }
+  return problems;
+}
+
+async function selftest(argv) {
+  const repo = take(argv, '--repo');
+  const only = argv.filter((x) => !x.startsWith('--'));
+  const a = repo ? adapterFor(repo) : null;
+  const rows = [];
+  const byFile = new Map();
+  if (!only.length || only.includes('catalog')) {
+    const p = lintCatalog();
+    rows.push({ id: 'catalog', result: p.length ? 'FAIL' : 'PASS', why: p.length ? p.slice(0, 5).join(' | ') : `${TOOLS.length} tools, 26 spec items, 36 acceptance steps, no orphans` });
+  }
+  for (const t of TOOLS) {
+    if (only.length && !only.includes(t.id)) continue;
+    let argvRun = null;
+    let cwd = TOOLKIT;
+    if (t.status === 'available' && t.self_test) argvRun = [process.execPath, path.join(TOOLKIT, t.self_test)];
+    else if (t.status === 'adapter' && a) {
+      const cfg = (a.adapter.tools || {})[t.id] || {};
+      if (cfg.self_test) { argvRun = expand(cfg.self_test, a.ctx); cwd = a.ctx.repo; }
+    }
+    if (!argvRun) {
+      const why = t.status === 'adapter' ? (a ? `app gives no self_test${statusFor(t, a) === 'blocked' ? ' (blocked: no command)' : ''}` : 'app tool: needs --repo') : label(t, t.status);
+      rows.push({ id: t.id, result: t.status === 'available' ? 'FAIL' : 'SKIP', why: t.status === 'available' ? 'no self_test' : why });
+      continue;
+    }
+    const key = `${cwd}\0${argvRun.join('\0')}`;
+    if (byFile.has(key)) { rows.push({ id: t.id, result: byFile.get(key).result, why: `${byFile.get(key).why} (same self-test as ${byFile.get(key).id})` }); continue; }
+    const t0 = Date.now();
+    const env = { ...process.env, AE_TOOLKIT: TOOLKIT };
+    if (a && a.adapter.launch && a.adapter.launch.display) env.DISPLAY = expand(String(a.adapter.launch.display), a.ctx);
+    const r = spawnSync(argvRun[0], argvRun.slice(1), { cwd, env, encoding: 'utf8', timeout: 600000 });
+    const pass = r.status === 0;
+    const checks = (`${r.stdout}`.match(/^ {2}(ok |BAD) /gm) || []).length;
+    const why = pass ? `${Date.now() - t0} ms${checks ? `, ${checks} checks` : ''}` : `exit ${r.status}: ${`${r.stdout}${r.stderr}`.trim().split('\n').filter((l) => /BAD|FAIL|Error|error/.test(l)).slice(0, 3).join(' | ')}`;
+    rows.push({ id: t.id, result: pass ? 'PASS' : 'FAIL', why });
+    byFile.set(key, rows[rows.length - 1]);
+  }
+  for (const r of rows) process.stdout.write(`${r.result.padEnd(4)} ${r.id.padEnd(30)} ${r.why}\n`);
+  const n = (s) => rows.filter((r) => r.result === s).length;
+  process.stdout.write(`\nselftest: ${n('PASS')} pass, ${n('FAIL')} fail, ${n('SKIP')} skipped (pending, or app tools without --repo or without an app self-test)\n`);
+  return n('FAIL') ? 1 : 0;
+}
+
+async function adapterCmd(argv) {
+  const repo = take(argv, '--repo');
+  const live = bool(argv, '--live');
+  if (!repo) die('ae adapter --repo <path> [--live]');
+  const a = loadAdapter(repo, TOOLKIT);
+  if (!a.adapter) die(a.problems.join('; '));
+  let expanded = null;
+  try { expanded = expand(a.adapter, a.ctx); } catch (e) { a.problems.push(e.message); }
+  const known = new Set(TOOLS.map((t) => t.id));
+  for (const id of Object.keys(a.adapter.tools || {})) if (!known.has(id)) a.problems.push(`tools.${id}: not a manifest tool`);
+  for (const r of a.adapter.changeRules || []) for (const c of r.classes || []) if (!MANIFEST.change_classes[c]) a.problems.push(`changeRules ${r.id}: unknown class ${c}`);
+  for (const c of a.adapter.fallbackClasses || []) if (!MANIFEST.change_classes[c]) a.problems.push(`fallbackClasses: unknown class ${c}`);
+  for (const [g, ids] of Object.entries(a.adapter.gates || {})) {
+    if (!MANIFEST.gates[g]) a.problems.push(`gates.${g}: not a manifest gate`);
+    for (const id of Array.isArray(ids) ? ids : []) if (!known.has(id)) a.problems.push(`gates.${g}: ${id} is not a manifest tool`);
+  }
+  const evidence = a.adapter.evidenceDir || '.ae';
+  const ignored = spawnSync('git', ['check-ignore', '-q', path.join(evidence, 'runs', 'probe.json')], { cwd: a.ctx.repo });
+  if (ignored.status === 1) a.problems.push(`evidence directory ${evidence}/ is not ignored by git: receipts would dirty the tree the gates verify`);
+  if (a.problems.length) { process.stdout.write(`FAIL adapter ${a.file}\n  ${a.problems.join('\n  ')}\n`); return 1; }
+  const l = expanded.launch || {};
+  process.stdout.write(`adapter ${a.file}: app ${expanded.app}; launch ${JSON.stringify(l.command)} on DISPLAY ${l.display}, CDP ${l.host || '127.0.0.1'}:${l.cdpPort}; ${(expanded.readyProbes || []).length} ready probes; ${Object.keys(expanded.tools || {}).length} tool bindings; ${(expanded.acceptanceFlows || []).length} acceptance flows; ${(a.adapter.changeRules || []).length} change rules; ${(a.adapter.architectureRules || []).length} architecture rules; evidence ${evidence}/\n`);
+  const byId = new Map(TOOLS.map((t) => [t.id, t]));
+  for (const g of Object.keys(MANIFEST.gates)) {
+    const ids = (a.adapter.gates || {})[g] || [];
+    const parts = ids.map((id) => { const how = resolveTool(byId.get(id), a, TOOLKIT); return how.blocked ? `${id} BLOCKED (${how.blocked})` : `${id}${how.needsApp ? ' (app)' : ''}`; });
+    const state = !ids.length ? 'BLOCKED' : parts.some((p) => p.includes('BLOCKED')) ? 'BLOCKED' : 'bound';
+    process.stdout.write(`  gate ${g.padEnd(12)} ${state.padEnd(8)} ${parts.join(', ') || `no tool bound (suggested: ${MANIFEST.gates[g].tools.join(', ') || 'none'})`}\n`);
+  }
+  if (!live) { process.stdout.write('PASS adapter (static)\n'); return 0; }
+  if (l.display !== ':99' && !process.env.AE_ALLOW_DISPLAY) die(`refusing a live launch on display ${l.display}; the toolkit launches on :99 only (set AE_ALLOW_DISPLAY to override)`);
+  if (expanded.testDatabase && Array.isArray(expanded.testDatabase.reset)) {
+    const r = spawnSync(expanded.testDatabase.reset[0], expanded.testDatabase.reset.slice(1), { cwd: a.ctx.repo, encoding: 'utf8' });
+    if (r.status !== 0) die(`test database reset failed: ${`${r.stderr}`.trim().split('\n').pop()}`);
+    process.stdout.write('test database reset\n');
+  }
+  const { liveCheck } = await import('../lib/probe.mjs');
+  const res = await liveCheck(expanded, { repo: a.ctx.repo, log: (m) => process.stdout.write(`${m}\n`) });
+  process.stdout.write(`launcher exit ${JSON.stringify(res.launcherExit)}\n${res.pass ? 'PASS' : 'FAIL'} adapter (live): ${res.results.filter((r) => r.ok).length}/${expanded.readyProbes.length} probes\n`);
+  return res.pass ? 0 : 1;
+}
+
+// Same method as /apps/workspace/tools/skills/install.mjs: copy the one source,
+// prove each copy byte-identical by sha256 over (relative name, bytes).
+function installSkill(argv) {
+  const check = bool(argv, '--check');
+  const src = path.join(TOOLKIT, 'skill');
+  const files = (dir, base = dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? files(path.join(dir, e.name), base) : [path.relative(base, path.join(dir, e.name))])).sort();
+  const digest = (dir) => { const h = crypto.createHash('sha256'); for (const f of files(dir)) { h.update(f + '\0'); h.update(fs.readFileSync(path.join(dir, f))); } return h.digest('hex'); };
+  const want = digest(src);
+  let drift = 0;
+  for (const root of ['.claude/skills', '.codex/skills', '.grok/skills'].map((d) => path.join(os.homedir(), d))) {
+    if (!fs.existsSync(root)) { process.stdout.write(`absent ${root}\n`); continue; }
+    const dst = path.join(root, 'app-engineering');
+    const have = fs.existsSync(dst) ? digest(dst) : null;
+    if (have === want) { process.stdout.write(`ok ${dst} ${want.slice(0, 12)}\n`); continue; }
+    drift += 1;
+    if (check) { process.stdout.write(`drift ${dst}\n`); continue; }
+    fs.rmSync(dst, { recursive: true, force: true });
+    fs.cpSync(src, dst, { recursive: true });
+    if (digest(dst) !== want) die(`copy into ${dst} does not match the source`, 1);
+    process.stdout.write(`installed ${dst} ${want.slice(0, 12)}\n`);
+  }
+  return check && drift ? 1 : 0;
+}
+
+async function main() {
+  const argv = process.argv.slice(2);
+  const cmd = argv.shift();
+  switch (cmd) {
+    case 'list': return list(argv);
+    case 'show': { const t = tool(argv[0]); process.stdout.write(JSON.stringify(t, null, 2) + '\n'); return 0; }
+    case 'classes': return classes();
+    case 'run': return run(argv);
+    case 'gates': return gates(argv);
+    case 'verify': return verify(argv);
+    case 'selftest': return selftest(argv);
+    case 'adapter': return adapterCmd(argv);
+    case 'install-skill': return installSkill(argv);
+    case undefined: case 'help': case '--help': case '-h': {
+      const text = fs.readFileSync(fileURLToPath(import.meta.url), 'utf8');
+      const lines = text.split('\n').slice(1);
+      const header = lines.slice(0, lines.findIndex((l) => !l.startsWith('//')));
+      process.stdout.write(header.map((l) => l.slice(3)).join('\n') + '\n');
+      return 0;
+    }
+    default: return die(`unknown command ${cmd}; \`ae help\``);
+  }
+}
+
+main().then((code) => process.exit(code), (e) => die(e && e.stack ? e.stack : String(e)));

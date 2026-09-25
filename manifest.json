@@ -1,0 +1,478 @@
+{
+  "schema": "app-engineering.manifest/1",
+  "toolkit": "/wiki/tools/app-engineering",
+  "version": "2.0.0",
+  "updated": "2026-09-24",
+  "dispatcher": "/wiki/tools/app-engineering/bin/ae",
+  "adapter_file": "app-engineering.json",
+  "sources": {
+    "ae": "this toolkit (2026-09-24): 9 engines moved from Workspace tools/fitness/lib, the adapter, the dispatcher",
+    "appbuild": "Sol's App Builder Kit 0.1 (~/Documents/app-builder-kit, PR #2 codex/appbuilder-diagnostic, 2026-09-24): its Python runner ported to Node here; entries it contributed carry sol_ids"
+  },
+  "statuses": {
+    "available": "the engine lives in this toolkit and `ae selftest` proves it, a planted defect going red",
+    "adapter": "the app implements it; the adapter's tools.<id>.command runs it. For an app whose adapter gives no command it is blocked (`ae list --repo <app>`)",
+    "pending": "being built by the named card (field \"card\"); nothing runs; a gate bound to it is BLOCKED",
+    "blocked": "unconfigured: nothing to run until the app configures it (shown per app by `ae list --repo`)"
+  },
+  "exit_codes": {
+    "0": "pass or measured",
+    "1": "gate or detector red",
+    "2": "usage or could not measure",
+    "3": "blocked: pending, unconfigured, or not provided by the app"
+  },
+  "gates": {
+    "correctness": {
+      "tools": [
+        "correctness.suite",
+        "correctness.fitness",
+        "correctness.flake"
+      ]
+    },
+    "architecture": {
+      "tools": [
+        "architecture.rules",
+        "architecture.dependency-rules",
+        "architecture.routing-graph",
+        "architecture.complexity",
+        "architecture.dead-exports"
+      ]
+    },
+    "e2e": {
+      "tools": [
+        "e2e.suite",
+        "e2e.playwright"
+      ]
+    },
+    "visual": {
+      "tools": [
+        "visual.theme-probe",
+        "visual.regression",
+        "visual.contrast"
+      ]
+    },
+    "contracts": {
+      "tools": [
+        "contracts.api"
+      ]
+    },
+    "migrations": {
+      "tools": [
+        "migrations.upgrade"
+      ]
+    },
+    "database": {
+      "tools": [
+        "database.index-coverage",
+        "database.pg-profile",
+        "database.pg-plan",
+        "database.routes-profile",
+        "database.sqlite-explain"
+      ]
+    },
+    "chaos": {
+      "tools": [
+        "chaos.suite"
+      ]
+    },
+    "timing": {
+      "tools": [
+        "timing.app-metrics",
+        "timing.waterfall"
+      ]
+    },
+    "chromium": {
+      "tools": [
+        "chromium.profile"
+      ]
+    },
+    "process": {
+      "tools": [
+        "process.tree",
+        "process.memory",
+        "process.pss",
+        "process.soak"
+      ]
+    },
+    "gpu": {
+      "tools": [
+        "process.gpu"
+      ]
+    },
+    "imports": {
+      "tools": [
+        "imports.profile"
+      ]
+    },
+    "bundle": {
+      "tools": [
+        "bundle.analyze"
+      ]
+    },
+    "performance": {
+      "tools": [
+        "bench.run",
+        "bench.pair",
+        "bench.compare"
+      ]
+    },
+    "acceptance": {
+      "tools": [
+        "acceptance.proof",
+        "acceptance.evidence",
+        "acceptance.replay"
+      ]
+    },
+    "security": {
+      "tools": [
+        "logs.secret-scan",
+        "ports.listening"
+      ]
+    }
+  },
+  "gates_note": "The gate menu: the tools that can satisfy each gate. An app binds its own (adapter \"gates\"); an unbound gate is BLOCKED.",
+  "change_classes": {
+    "docs-only": {
+      "gates": [],
+      "tools": []
+    },
+    "test-only": {
+      "gates": [
+        "correctness"
+      ],
+      "tools": [
+        "correctness.suite",
+        "correctness.flake"
+      ]
+    },
+    "app-code": {
+      "gates": [
+        "correctness",
+        "architecture",
+        "e2e"
+      ],
+      "tools": [
+        "correctness.suite",
+        "correctness.fitness",
+        "architecture.rules",
+        "architecture.complexity",
+        "architecture.dead-exports",
+        "logs.secret-scan",
+        "e2e.suite"
+      ]
+    },
+    "css-only": {
+      "gates": [
+        "correctness",
+        "e2e",
+        "visual"
+      ],
+      "tools": [
+        "correctness.suite",
+        "visual.contrast",
+        "visual.theme-probe",
+        "visual.regression",
+        "visual.harmony",
+        "visual.proposals",
+        "e2e.suite",
+        "e2e.playwright"
+      ]
+    },
+    "renderer": {
+      "gates": [
+        "correctness",
+        "e2e",
+        "visual",
+        "chromium",
+        "performance"
+      ],
+      "tools": [
+        "correctness.suite",
+        "e2e.suite",
+        "e2e.playwright",
+        "visual.regression",
+        "chromium.profile",
+        "imports.profile",
+        "bundle.analyze",
+        "timing.app-metrics",
+        "bench.run",
+        "bench.compare"
+      ]
+    },
+    "db-schema": {
+      "gates": [
+        "correctness",
+        "contracts",
+        "migrations",
+        "database"
+      ],
+      "tools": [
+        "correctness.suite",
+        "migrations.upgrade",
+        "contracts.api",
+        "database.pg-profile",
+        "database.index-coverage"
+      ]
+    },
+    "db-query": {
+      "gates": [
+        "correctness",
+        "contracts",
+        "database",
+        "performance"
+      ],
+      "tools": [
+        "correctness.suite",
+        "contracts.api",
+        "database.pg-profile",
+        "database.pg-plan",
+        "database.index-coverage",
+        "bench.run",
+        "bench.compare"
+      ]
+    },
+    "routing": {
+      "gates": [
+        "correctness",
+        "architecture",
+        "contracts",
+        "chaos",
+        "e2e"
+      ],
+      "tools": [
+        "correctness.suite",
+        "architecture.rules",
+        "architecture.routing-graph",
+        "architecture.dependency-rules",
+        "database.routes-profile",
+        "contracts.api",
+        "chaos.suite",
+        "e2e.suite"
+      ]
+    },
+    "startup": {
+      "gates": [
+        "correctness",
+        "architecture",
+        "timing",
+        "chromium",
+        "process",
+        "imports",
+        "performance",
+        "e2e"
+      ],
+      "tools": [
+        "correctness.suite",
+        "timing.waterfall",
+        "timing.app-metrics",
+        "process.tree",
+        "process.memory",
+        "process.pss",
+        "chromium.profile",
+        "imports.profile",
+        "e2e.suite",
+        "bench.run",
+        "bench.compare"
+      ]
+    },
+    "electron-process": {
+      "gates": [
+        "correctness",
+        "e2e",
+        "chromium",
+        "process",
+        "performance",
+        "acceptance"
+      ],
+      "tools": [
+        "correctness.suite",
+        "chromium.profile",
+        "process.tree",
+        "process.memory",
+        "process.pss",
+        "process.soak",
+        "ports.listening",
+        "acceptance.proof"
+      ]
+    },
+    "gpu": {
+      "gates": [
+        "correctness",
+        "chromium",
+        "process",
+        "gpu",
+        "performance",
+        "e2e",
+        "acceptance"
+      ],
+      "tools": [
+        "correctness.suite",
+        "chromium.profile",
+        "process.tree",
+        "process.memory",
+        "process.gpu",
+        "e2e.suite",
+        "acceptance.proof"
+      ]
+    },
+    "network-exposure": {
+      "gates": [
+        "correctness",
+        "security"
+      ],
+      "tools": [
+        "correctness.suite",
+        "ports.listening",
+        "ports.registry",
+        "logs.secret-scan"
+      ]
+    }
+  },
+  "change_classes_source": "Union of this toolkit's classes (B2-T9 owner examples: docs-only needs no gate, css-only needs visual and e2e and no performance) and Sol's change rules (their required gates are kept: routing adds contracts and e2e, startup adds architecture, timing, chromium, process and imports). docs-only differs from Sol, who required correctness: the owner's examples win.",
+  "default_change_rules": [
+    {
+      "id": "styles",
+      "patterns": [
+        "*.css",
+        "*.scss",
+        "*.sass"
+      ],
+      "classes": [
+        "css-only"
+      ]
+    },
+    {
+      "id": "database",
+      "patterns": [
+        "*migration*",
+        "*schema*",
+        "*database*",
+        "*db/*"
+      ],
+      "classes": [
+        "db-schema"
+      ]
+    },
+    {
+      "id": "routing",
+      "patterns": [
+        "*route*",
+        "*router*",
+        "*resolver*"
+      ],
+      "classes": [
+        "routing"
+      ]
+    },
+    {
+      "id": "startup",
+      "patterns": [
+        "*main.*",
+        "*preload*",
+        "*boot*",
+        "*plugin*"
+      ],
+      "classes": [
+        "startup"
+      ]
+    },
+    {
+      "id": "gpu",
+      "patterns": [
+        "*gpu*",
+        "*compositor*",
+        "*chromium*"
+      ],
+      "classes": [
+        "gpu"
+      ]
+    },
+    {
+      "id": "app-code",
+      "patterns": [
+        "*.js",
+        "*.mjs",
+        "*.cjs",
+        "*.jsx",
+        "*.ts",
+        "*.tsx",
+        "*.py",
+        "*.json"
+      ],
+      "classes": [
+        "app-code"
+      ]
+    },
+    {
+      "id": "docs",
+      "patterns": [
+        "*.md",
+        "*.txt"
+      ],
+      "classes": [
+        "docs-only"
+      ]
+    }
+  ],
+  "default_fallback_classes": [
+    "app-code"
+  ],
+  "default_change_rules_source": "Sol's config/project.template.json change_rules; an app's adapter changeRules replace them. Rules union: every rule a path matches adds its classes; a path no rule matches gets default_fallback_classes.",
+  "tools": [
+    {"id": "bench.stats", "name": "Spread and summary statistics: median, MAD, bounds, quantiles, N/min/max/mean/p50-p99/stdev/CV, seeded bootstrap CI", "version": "1.0.0", "category": "bench", "status": "available", "kind": "library", "command": "node {toolkit}/bench/stats.mjs --values <n,n,...> [--k 3] [--floor-abs N] [--floor-pct P]", "path": "bench/stats.mjs", "inputs": ["repeated samples (numbers)"], "outputs": ["JSON: n, median, mad, upperBound, lowerBound (CLI); summary(), quantile(), deltaCI() (library)"], "dependencies": ["node>=22"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["json"], "self_test": "bench/stats.selftest.mjs", "toolchain_items": [1, 25], "sol_ids": ["bench.compare (summary)"], "note": "Sol's quantile/summary/bootstrap folded in (one stats module). B2-T1's tools/bench/lib/stats.mjs (on the card) must become a re-export of this file when it merges."},
+    {"id": "bench.threshold", "name": "Fail-closed threshold gate (max, min, zero, ratchet, ratchetMin, spread)", "version": "1.0.0", "category": "bench", "status": "available", "kind": "gate", "command": "node {toolkit}/bench/threshold.mjs --threshold '<json>' --value <v> [--baseline <ledger.json> --key <id>] [--recording] [--json]", "path": "bench/threshold.mjs", "inputs": ["measured value", "threshold JSON", "baseline ledger (JSON)"], "outputs": ["PASS/FAIL line with bound and reason"], "dependencies": ["node>=22"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout"], "self_test": "bench/threshold.selftest.mjs", "toolchain_items": [24, 25]},
+    {"id": "bench.compare", "name": "Automated performance gate: exactly PASS, FAIL or INCONCLUSIVE (bootstrap CIs of p50 and p95 deltas)", "version": "1.0.0", "category": "bench", "status": "available", "kind": "gate", "command": "node {toolkit}/bench/compare.mjs (--samples <file.json> | --baseline <n,...> --candidate <n,...>) [--threshold-ms 5] [--resamples 4000] [--json]", "path": "bench/compare.mjs", "inputs": ["baseline and candidate samples (ms), >= 20 a side"], "outputs": ["first line PASS/FAIL/INCONCLUSIVE; JSON with summaries, deltas, 95% CIs, action"], "dependencies": ["node>=22"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "bench/compare.selftest.mjs", "toolchain_items": [25], "sol_ids": ["bench.compare"], "note": "Sol's rule: FAIL when a p50 or p95 delta CI lies wholly above +threshold; PASS when the p50 CI lies wholly below -threshold and the p95 CI does not exceed +threshold; else INCONCLUSIVE (keep the baseline). Exit 1 on FAIL only."},
+    {"id": "bench.pair", "name": "Paired command benchmark: warmups, N trials alternating baseline/candidate, raw samples, bench.compare verdict, ledger row", "version": "1.0.0", "category": "bench", "status": "available", "kind": "measure", "command": "node {toolkit}/bench/pair.mjs --baseline '<json argv>' --candidate '<json argv>' [--runs 25] [--warmups 4] [--timeout-s 30] [--threshold-ms 5] [--cwd <dir>] [--ledger <file.jsonl>] [--json]", "path": "bench/pair.mjs", "inputs": ["baseline and candidate commands (argv)"], "outputs": ["first line PASS/FAIL/INCONCLUSIVE; raw samples; one append-only ledger row with --ledger"], "dependencies": ["node>=22"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "minutes", "artifacts": ["stdout", "json", "jsonl"], "self_test": "bench/pair.selftest.mjs", "toolchain_items": [1, 24, 25], "sol_ids": ["bench.run", "regression.ledger"], "note": "New process per trial, alternating order, unpaired bootstrap (Sol's bench_pair). The app's workloads are its commands; cold/warm separation is the workload's."},
+    {"id": "process.pss", "name": "Process-tree PSS/RSS and process count from /proc", "version": "1.0.0", "category": "process", "status": "available", "kind": "gate", "command": "node {toolkit}/process/pss.mjs --pid <root pid> [--max-mb N] [--proc-root /proc] [--json]", "path": "process/pss.mjs", "inputs": ["root pid of the app"], "outputs": ["PSS MB, RSS MB, process count, pids; PASS/FAIL with --max-mb"], "dependencies": ["node>=22", "/proc smaps_rollup (Linux 4.14+)"], "platforms": ["linux"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "process/pss.selftest.mjs", "toolchain_items": [4, 5]},
+    {"id": "process.soak", "name": "Soak runner and leak judge (slope and growth over N cycles)", "version": "1.0.0", "category": "process", "status": "available", "kind": "detector", "command": "node {toolkit}/process/soak.mjs --samples <file.json> [--warmup N] [--max-slope key=bound ...] [--max-growth key=bound ...] [--json]", "path": "process/soak.mjs", "inputs": ["samples series (JSON), or in-process runSoak({cycles, warmupCycles, cycle, sample})"], "outputs": ["per-key slope/cycle and growth; PASS/FAIL"], "dependencies": ["node>=22"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "minutes", "artifacts": ["stdout", "json"], "self_test": "process/soak.selftest.mjs", "toolchain_items": [5]},
+    {"id": "ports.listening", "name": "Listening sockets of a process tree (loopback-only gate); declared port registry vs every listener (owner process, duplicates)", "version": "1.0.0", "category": "ports", "status": "available", "kind": "gate", "command": "node {toolkit}/ports/listening.mjs --pid <pid> [--tree] [--require-loopback] | (--registry <file.json> | --adapter <app-engineering.json>) [--proc-root /proc] [--json]", "path": "ports/listening.mjs", "inputs": ["pid, or a port registry [{port, protocol, process_contains}] (adapter \"ports\")"], "outputs": ["sockets with pid/address/loopback; registry problems; exit 3 when no port is declared"], "dependencies": ["node>=22", "/proc/net/tcp{,6}"], "platforms": ["linux"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "ports/listening.selftest.mjs", "toolchain_items": [9, 21], "sol_ids": ["ports.inventory"]},
+    {"id": "architecture.complexity", "name": "Cyclomatic complexity ratchet (McCabe) over JS sources", "version": "1.0.0", "category": "architecture", "status": "available", "kind": "gate", "command": "node {toolkit}/architecture/complexity.mjs --root <repo> --dir <rel> [--dir ...] [--skip name ...] [--max 15] [--allowed N] [--json]", "path": "architecture/complexity.mjs", "inputs": ["source directories"], "outputs": ["functions over the ceiling, worst first; PASS/FAIL against --allowed"], "dependencies": ["node>=22", "acorn 8.18.0 (toolkit node_modules)"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "architecture/complexity.selftest.mjs", "toolchain_items": [14]},
+    {"id": "architecture.dead-exports", "name": "Dead-export detector (exported names no other file mentions)", "version": "1.0.0", "category": "architecture", "status": "available", "kind": "detector", "command": "node {toolkit}/architecture/dead-exports.mjs --root <repo> --dir <rel> [--dir ...] [--source-prefix <rel/>] [--ceiling N] [--json]", "path": "architecture/dead-exports.mjs", "inputs": ["source directories"], "outputs": ["file:name of each dead export; PASS/FAIL against --ceiling"], "dependencies": ["node>=22"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "architecture/dead-exports.selftest.mjs", "toolchain_items": [14]},
+    {"id": "architecture.rules", "name": "Architecture rules: forbidden pattern in a set of files (e.g. one pg.Pool owner); a rule matching no file is red", "version": "1.0.0", "category": "architecture", "status": "available", "kind": "gate", "command": "node {toolkit}/architecture/rules.mjs --root <repo> (--adapter <app-engineering.json> | --rules <file.json>) [--json]", "path": "architecture/rules.mjs", "inputs": ["adapter architectureRules [{id, files, forbid_regex, require_match}]"], "outputs": ["violations file:line; exit 3 when no rule is configured"], "dependencies": ["node>=22"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "architecture/rules.selftest.mjs", "toolchain_items": [14], "sol_ids": ["architecture.check"], "note": "A regex over source is one piece of evidence, not proof of a single authority; module-graph rules are architecture.dependency-rules (B2-T5)."},
+    {"id": "visual.contrast", "name": "WCAG 2.2 contrast audit of stylesheets (var() resolved, alpha composited)", "version": "1.0.0", "category": "visual", "status": "available", "kind": "gate", "command": "node {toolkit}/visual/contrast.mjs --root <repo> --css <rel> [--css ...] [--min 4.5] [--base <colour>] [--pairs <json>] [--json]", "path": "visual/contrast.mjs", "inputs": ["stylesheets", "inherited pairs (JSON)"], "outputs": ["pairs under the minimum, unreadable colours, missing stylesheets; PASS/FAIL"], "dependencies": ["node>=22"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "visual/contrast.selftest.mjs", "toolchain_items": [18]},
+    {"id": "visual.harmony", "name": "Colour harmonies on the HSV wheel with WCAG contrast per swatch; --require-aa gate", "version": "1.0.0", "category": "visual", "status": "available", "kind": "gate", "command": "node {toolkit}/visual/harmony.mjs --base '#RRGGBB' [--mode complementary|analogous|triadic|split-complementary|tetradic|monochromatic] [--background '#FFFFFF'] [--require-aa]", "path": "visual/harmony.mjs", "inputs": ["base colour, mode, background"], "outputs": ["palette JSON: hex, contrast, AA normal/large per swatch"], "dependencies": ["node>=22"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "visual/harmony.selftest.mjs", "toolchain_items": [18], "sol_ids": ["color.harmony"], "note": "Contrast is visual/contrast.mjs (one implementation). Hue geometry says nothing about legibility; the ratio does."},
+    {"id": "visual.color-wheel", "name": "Interactive colour wheel page with contrast readout (self-contained HTML)", "version": "1.0.0", "category": "visual", "status": "available", "kind": "library", "cli": "open visual/color-wheel.html in a browser (localhost for the snap browser)", "command": "open {toolkit}/visual/color-wheel.html (serve over localhost for the snap browser)", "path": "visual/color-wheel.html", "inputs": ["pointer, base, background, mode"], "outputs": ["palette JSON (copy button)"], "dependencies": ["a browser"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["html", "json"], "self_test": "visual/color-wheel.selftest.mjs", "toolchain_items": [18], "sol_ids": ["color.wheel"], "note": "One self-contained file; its self-test proves the page's inline contrast and harmony math equal visual/contrast.mjs and visual/harmony.mjs and that a planted drift goes red."},
+    {"id": "visual.proposals", "name": "Design proposals: the app's image generator on a brief must leave >= 2 decodable images before a design question", "version": "1.0.0", "category": "visual", "status": "available", "kind": "gate", "command": "node {toolkit}/visual/proposals.mjs --repo <repo> --brief <text> --generator '<json argv with {brief} {outdir}>' [--out <dir>] [--min 2]", "path": "visual/proposals.mjs", "inputs": ["brief", "generator argv (adapter tools.visual.proposals.args)"], "outputs": ["images with size and sha256; exit 3 when no generator is configured"], "dependencies": ["node>=22", "ffprobe", "ffmpeg"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["png", "json"], "self_test": "visual/proposals.selftest.mjs", "toolchain_items": [18], "sol_ids": ["design.proposals"], "note": "An app with no generator bound is BLOCKED for design questions: no proposal images, no owner question about looks."},
+    {"id": "logs.secret-scan", "name": "Secret leak detector over repo, logs and user data (value never printed)", "version": "1.0.0", "category": "logs", "status": "available", "kind": "detector", "command": "node {toolkit}/logs/secret-scan.mjs --root <dir> [--root ...] (--needle-env VAR | --needle-file <file>) [--skip name ...] [--exclude-basename name ...] [--json]", "path": "logs/secret-scan.mjs", "inputs": ["roots to scan", "secret via env var or file (never argv)"], "outputs": ["files and counts only; PASS/FAIL"], "dependencies": ["node>=22"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "logs/secret-scan.selftest.mjs", "toolchain_items": [22]},
+    {"id": "gates.classify", "name": "Change classifier: changed paths -> change classes -> required gates (adapter changeRules; fnmatch, * crosses /)", "version": "1.0.0", "category": "gates", "status": "available", "kind": "library", "cli": "ae gates --plan", "command": "ae gates --repo <app> (--changed <path>... | --base <ref>) --plan", "path": "gates/gates.mjs", "inputs": ["changed paths or a git base", "adapter changeRules, fallbackClasses, gates"], "outputs": ["classes, required gates, each gate's bound tools and BLOCKED reasons (JSON with --json)"], "dependencies": ["node>=22", "git"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "gates/gates.selftest.mjs", "toolchain_items": [], "sol_ids": ["gate.select"], "note": "Rules are the app's (adapter changeRules); manifest default_change_rules apply when it has none. Workspace main now also carries card B2-T9's tools/gates/{classify,run,receipt}.mjs + matrix.json (merged d122233), the live merge-card gate with B2-T12 provenance and receipts committed under .research-ops. That is a second classifier and receipt writer. Migration (not applied here: it changes the live merge gate, the closer's and owner's call): merge-card.sh calls `ae gates --repo . --base <merge base>` (recorded through tools/obs/record.mjs) and `ae verify`; matrix.json's classes and commands are already the adapter's changeRules and gates; then tools/gates is deleted with tools/test/gates.test.mjs moved onto ae."},
+    {"id": "gates.run", "name": "Gate runner: every required gate's bound tools run; a receipt per gate and a build receipt (BLOCKED when unbound, pending or without a command)", "version": "1.0.0", "category": "gates", "status": "available", "kind": "gate", "cli": "ae gates", "command": "ae gates --repo <app> (--changed <path>... | --base <ref>) [--json]", "path": "gates/gates.mjs", "inputs": ["changed paths or a git base", "adapter gates bindings"], "outputs": ["<evidenceDir>/runs/<run id>.json per gate and per build; exit 0 only when every required gate PASSed"], "dependencies": ["node>=22", "git"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "long", "artifacts": ["json"], "self_test": "gates/gates.selftest.mjs", "toolchain_items": [23], "sol_ids": ["gate.select"], "note": "Sol's run_gates: an empty binding is BLOCKED and the build fails. Workspace main now also carries card B2-T9's tools/gates/{classify,run,receipt}.mjs + matrix.json (merged d122233), the live merge-card gate with B2-T12 provenance and receipts committed under .research-ops. That is a second classifier and receipt writer. Migration (not applied here: it changes the live merge gate, the closer's and owner's call): merge-card.sh calls `ae gates --repo . --base <merge base>` (recorded through tools/obs/record.mjs) and `ae verify`; matrix.json's classes and commands are already the adapter's changeRules and gates; then tools/gates is deleted with tools/test/gates.test.mjs moved onto ae."},
+    {"id": "gates.receipt", "name": "Build receipt verification: hashes, commit, clean tree, adapter sha256, current rules, every required gate PASS, captured-output hashes", "version": "1.0.0", "category": "gates", "status": "available", "kind": "gate", "cli": "ae verify", "command": "ae verify <build receipt> --repo <app> [--allow-dirty]", "path": "gates/gates.mjs", "inputs": ["build receipt"], "outputs": ["PASS or FAIL with each problem"], "dependencies": ["node>=22", "git"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout"], "self_test": "gates/gates.selftest.mjs", "toolchain_items": [23], "sol_ids": ["gate.verify", "commands.provenance"], "note": "A local receipt is inspectable evidence, not an attestation: CI reruns the gates. Workspace main now also carries card B2-T9's tools/gates/{classify,run,receipt}.mjs + matrix.json (merged d122233), the live merge-card gate with B2-T12 provenance and receipts committed under .research-ops. That is a second classifier and receipt writer. Migration (not applied here: it changes the live merge gate, the closer's and owner's call): merge-card.sh calls `ae gates --repo . --base <merge base>` (recorded through tools/obs/record.mjs) and `ae verify`; matrix.json's classes and commands are already the adapter's changeRules and gates; then tools/gates is deleted with tools/test/gates.test.mjs moved onto ae."},
+    {"id": "acceptance.evidence", "name": "Physical acceptance evidence: 36-step checklist, evidence files, HEAD commit, recording >= 15 s with a video stream", "version": "1.0.0", "category": "acceptance", "status": "available", "kind": "gate", "command": "node {toolkit}/acceptance/checklist.mjs --repo <repo> --log <walkthrough.json> [--checklist <file.json>] [--json]", "path": "acceptance/checklist.mjs", "inputs": ["walkthrough log {commit, movie, steps[{id, result, evidence}]}", "acceptance/acceptance.json"], "outputs": ["PASS/FAIL with each error; movie duration and sha256"], "dependencies": ["node>=22", "git", "ffprobe"], "platforms": ["linux"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "acceptance/checklist.selftest.mjs", "toolchain_items": [17], "sol_ids": ["acceptance.full"], "note": "Checks files and metadata; a reviewer still watches the recording. The checklist is acceptance/acceptance.json (first-class, 36 steps)."},
+    {"id": "database.sqlite-explain", "name": "SQLite plan and timing for one SELECT on a read-only connection; --require-index gate", "version": "1.0.0", "category": "database", "status": "available", "kind": "gate", "command": "node {toolkit}/database/sqlite-explain.mjs --db <file> --query 'SELECT ...' [--require-index] [--json]", "path": "database/sqlite-explain.mjs", "inputs": ["SQLite file", "one SELECT"], "outputs": ["EXPLAIN QUERY PLAN rows, rows, ms, bytes, full scans"], "dependencies": ["node>=22 (node:sqlite)"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "database/sqlite-explain.selftest.mjs", "toolchain_items": [11], "sol_ids": ["sqlite.explain"], "note": "Only where an app still uses SQLite; Workspace is PostgreSQL only (D78)."},
+    {"id": "database.pg-plan", "name": "PostgreSQL plan summary: rows returned/scanned, index use, inclusive buffers; --require-index and --max-rows-scanned gates", "version": "1.0.0", "category": "database", "status": "available", "kind": "gate", "command": "node {toolkit}/database/pg-plan.mjs --plan <explain.json> [--require-index] [--max-rows-scanned N] [--json]", "path": "database/pg-plan.mjs", "inputs": ["EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) output"], "outputs": ["summary JSON or a verdict line"], "dependencies": ["node>=22"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "database/pg-plan.selftest.mjs", "toolchain_items": [10], "note": "Moved from Workspace tools/measure/pg-profile.mjs summarizePlan (card B2-T6); Workspace imports it."},
+    {"id": "correctness.suite", "name": "Whole test suite, new-red against the recorded baseline", "version": "app", "category": "correctness", "status": "adapter", "kind": "gate", "command": "adapter tools.correctness.suite.command (Workspace: node tools/verify-all.mjs)", "path": null, "inputs": ["repo", "test database (adapter testDatabase)"], "outputs": ["pass/fail per file; summary pass= fail= newRed="], "dependencies": ["the app's test runner"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["stdout"], "self_test": "adapter tools.correctness.suite.self_test", "toolchain_items": [15, 16], "sol_ids": ["unit.run", "integration.run"], "note": "Sol's unit.run and integration.run were both 'the app supplies its suite as argv'; one entry."},
+    {"id": "correctness.fitness", "name": "Fitness-function runner (checks with thresholds against a baseline; --prove plants defects)", "version": "app", "category": "correctness", "status": "adapter", "kind": "gate", "command": "adapter tools.correctness.fitness.command (Workspace: node tools/fitness/run.mjs)", "path": null, "inputs": ["repo", "fitness config", "baseline ledger"], "outputs": ["one line per check; exit 1 on a new red"], "dependencies": ["this toolkit's bench.threshold, process.*, architecture.*, visual.contrast, logs.secret-scan"], "platforms": ["linux"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout", "json"], "self_test": "adapter tools.correctness.fitness.self_test", "toolchain_items": [14, 24, 25], "note": "config-driven and already app-agnostic in design (--config another project's fitness.config.json); moves in here when a second app adopts it"},
+    {"id": "timing.app-metrics", "name": "Launch-to-ready latencies, tree memory and Chromium counters, median of N", "version": "app", "category": "timing", "status": "adapter", "kind": "measure", "command": "adapter tools.timing.app-metrics.command (Workspace: node tools/measure/app-metrics.mjs --json --runs N)", "path": null, "inputs": ["runs"], "outputs": ["per-run and median ms, PSS/RSS, process count, JS heap, DOM nodes"], "dependencies": ["Xvfb on the adapter display", "e2e lock", "test database"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["json"], "self_test": null, "toolchain_items": [2, 5], "note": "B2-T1 extends it (exports its page probes for tools/bench); its private treeRssMb/median duplicate process.pss and bench.stats and should import them once T1 merges"},
+    {"id": "e2e.suite", "name": "End-to-end scripts on the virtual display (real input, CDP reads)", "version": "app", "category": "e2e", "status": "adapter", "kind": "gate", "command": "adapter tools.e2e.suite.command (Workspace: node tools/verify-all.mjs --only=e2e)", "path": null, "inputs": ["repo"], "outputs": ["pass/fail per script; screenshots"], "dependencies": ["Xvfb on the adapter display", "e2e lock", "test database"], "platforms": ["linux"], "destructive": false, "runtime": "long", "artifacts": ["stdout", "png"], "self_test": null, "toolchain_items": [17]},
+    {"id": "acceptance.proof", "name": "Physical acceptance flow with database evidence per step", "version": "app", "category": "acceptance", "status": "adapter", "kind": "gate", "command": "adapter tools.acceptance.proof.command (Workspace: node --test tools/e2e/proof-a.e2e.mjs); flows listed in adapter acceptanceFlows", "path": null, "inputs": ["acceptance flow"], "outputs": ["per-step record with db_evidence; pass/fail"], "dependencies": ["Xvfb on the adapter display", "xdotool pinned to that display", "test database"], "platforms": ["linux"], "destructive": false, "runtime": "long", "artifacts": ["json", "png"], "self_test": null, "toolchain_items": [17]},
+    {"id": "visual.theme-probe", "name": "Pixel ramp probe of the live UI (theme spread)", "version": "app", "category": "visual", "status": "adapter", "kind": "measure", "command": "adapter tools.visual.theme-probe.command (Workspace: node tools/theme-probe/measure.mjs --rects-from-cdp)", "path": null, "inputs": ["running app on the adapter display"], "outputs": ["PNG and spread number"], "dependencies": ["Xvfb", "CDP port"], "platforms": ["linux"], "destructive": false, "runtime": "seconds", "artifacts": ["png", "stdout"], "self_test": null, "toolchain_items": [18]},
+    {"id": "database.index-coverage", "name": "Index coverage: every WHERE column set in the stores has an index; the registry listing uses one at 10,000 rows", "version": "app", "category": "database", "status": "adapter", "kind": "gate", "command": "adapter tools.database.index-coverage.command (Workspace: node --test tools/test/index-coverage.test.mjs)", "path": null, "inputs": ["repo", "test database"], "outputs": ["node:test results"], "dependencies": ["the app's test runner", "test database"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["stdout"], "self_test": null, "toolchain_items": [10], "note": "Workspace also runs the source half as the fitness check performance.index-coverage."},
+    {"id": "timing.waterfall", "name": "Timing waterfall from perf_hooks marks across main, RO and renderers", "version": "app", "category": "timing", "status": "adapter", "kind": "measure", "command": "adapter tools.timing.waterfall.command (Workspace: node tools/measure/waterfall.mjs --runs 3 --json)", "path": null, "inputs": ["WORKSPACE_TRACE=1 launch"], "outputs": ["waterfall JSON and text chart tied to git SHA"], "dependencies": ["Xvfb", "e2e lock"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["json"], "self_test": "adapter tools.timing.waterfall.self_test", "toolchain_items": [2], "sol_ids": ["timing.node"], "note": "Merged on Workspace main with card B2-T2 (23ec1f1): WORKSPACE_TRACE=1 launch on :99, main/RO JSONL and renderer marks in one waterfall tied to the git SHA. The in-app tracer is Workspace's core/obs; Sol's timing.node tracer (same role) is therefore not copied: it would be a second tracer."},
+    {"id": "ipc.trace", "name": "Request-id tracing for IPC, localhost HTTP and DB calls", "version": "app", "category": "ipc", "status": "adapter", "kind": "measure", "command": "adapter tools.ipc.trace.command (Workspace: the traced run, node tools/measure/waterfall.mjs --runs 1 --json; request spans carry requestId)", "path": null, "inputs": ["traced run"], "outputs": ["per-request id, caller, destination, duration, status, bytes"], "dependencies": ["timing.waterfall"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["jsonl"], "self_test": "adapter tools.ipc.trace.self_test", "toolchain_items": [9], "sol_ids": ["ipc.trace"], "note": "Merged with card B2-T2: core/obs/trace.mjs (AsyncLocalStorage request ids) around IPC, localhost HTTP and DB calls."},
+    {"id": "logs.events", "name": "One structured JSONL event format and sink", "version": "app", "category": "logs", "status": "adapter", "kind": "library", "command": "adapter tools.logs.events.command (Workspace: the traced run writes the JSONL; node tools/measure/waterfall.mjs --runs 1 --json)", "path": null, "inputs": ["events"], "outputs": ["JSONL: timestamp, process, subsystem, severity, operation, run id, duration, error class, stack"], "dependencies": [], "platforms": ["linux"], "destructive": false, "runtime": "seconds", "artifacts": ["jsonl"], "self_test": "adapter tools.logs.events.self_test", "toolchain_items": [22], "sol_ids": ["logs.validate"], "note": "Merged with card B2-T2: core/obs/events.mjs, one append-only JSONL format. Sol's logs.validate folds in here."},
+    {"id": "database.pg-profile", "name": "Postgres profiler: EXPLAIN (ANALYZE, BUFFERS), pg_stat_statements, pool metrics", "version": "app", "category": "database", "status": "adapter", "kind": "measure", "command": "adapter tools.database.pg-profile.command (Workspace: node tools/measure/pg-profile.mjs)", "path": null, "inputs": ["test database"], "outputs": ["JSON: per-query plan, rows returned/scanned, index use, buffers; pool; routing load/reload/lookup; pg_stat_statements and duplicate queries when available"], "dependencies": ["database.pg-plan", "test database only"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["json"], "self_test": "adapter tools.database.pg-profile.self_test", "toolchain_items": [10], "sol_ids": ["postgres.explain"], "note": "Merged on Workspace main with card B2-T6 (a212eb2). Its plan summary moved into this toolkit as database.pg-plan; the profiler (hot queries, pool, routing timings) is Workspace's. Sol's postgres.explain folds in here."},
+    {"id": "contracts.api", "name": "API contract tests for every owner and agent action", "version": "app", "category": "contracts", "status": "adapter", "kind": "gate", "command": "adapter tools.contracts.api.command (Workspace: node --test apps/research-ops/tests/contract/*.test.mjs)", "path": null, "inputs": ["test database"], "outputs": ["node:test results"], "dependencies": ["test database"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["stdout"], "self_test": null, "toolchain_items": [19], "sol_ids": ["contracts.run"], "note": "Merged on Workspace main with card B2-T6. Sol's contracts.run folds in here."},
+    {"id": "migrations.upgrade", "name": "Migration tests: fresh, previous manifest, populated DB", "version": "app", "category": "migrations", "status": "adapter", "kind": "gate", "command": "adapter tools.migrations.upgrade.command (Workspace: node --test apps/research-ops/tests/migration-upgrade.test.mjs)", "path": null, "inputs": ["test database"], "outputs": ["node:test results"], "dependencies": ["test database (reset)"], "platforms": ["linux"], "destructive": true, "runtime": "minutes", "artifacts": ["stdout"], "self_test": null, "toolchain_items": [20], "sol_ids": ["migrations.verify"], "note": "Merged on Workspace main with card B2-T6; test database only (it resets). Sol's migrations.verify folds in here."},
+    {"id": "chaos.suite", "name": "Failure/chaos tests: Postgres down, plugin throws, timeouts, missed NOTIFY, corrupt config, port taken", "version": "app", "category": "chaos", "status": "adapter", "kind": "gate", "command": "adapter tools.chaos.suite.command (Workspace: node --test tools/test/chaos-*.test.mjs)", "path": null, "inputs": ["test database"], "outputs": ["node:test results"], "dependencies": ["test database"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["stdout"], "self_test": null, "toolchain_items": [21], "sol_ids": ["chaos.run"], "note": "Merged on Workspace main with card B2-T6 (Postgres down, plugin throws, duplicate plugin, malformed route, PORT_IN_USE). Sol's chaos.run folds in here."},
+    {"id": "bench.run", "name": "Benchmark orchestrator (warmups, N, cold/warm, percentiles, bootstrap CI, env fingerprint, ledger)", "version": "planned", "category": "bench", "status": "pending", "card": "B2-T1", "kind": "measure", "command": "node tools/bench/run.mjs --workload <name[,name]> --runs N --warmup W [--cold] [--candidate <ref>] [--collect process,memory,cpu,gpu,io] [--seed S] [--json]", "path": "tools/bench/run.mjs (app repo, card branch card/B2-T1)", "inputs": ["workload", "runs", "warmups"], "outputs": ["series appended to .research-ops/benchmarks/baselines.jsonl; runs/<id>.json"], "dependencies": ["Xvfb", "e2e lock", "test database"], "platforms": ["linux"], "destructive": false, "runtime": "long", "artifacts": ["jsonl", "json"], "self_test": null, "toolchain_items": [1, 24], "note": "Workspace workloads (launch, Board ready, station switch; cold/warm; collectors) on card B2-T1. Its trials should run through bench.pair and its stats re-export bench.stats; its verdict is bench.compare. No second stats or compare module."},
+    {"id": "bench.experiment", "name": "Optimization experiment harness (baseline, isolated candidate, compare -> ADOPT/REVERT/KEEP)", "version": "planned", "category": "bench", "status": "pending", "card": "B2-T1", "kind": "gate", "command": "node tools/bench/experiment.mjs", "path": "tools/bench/experiment.mjs", "inputs": ["candidate ref"], "outputs": ["verdict and action"], "dependencies": ["bench.compare", "correctness.suite"], "platforms": ["linux"], "destructive": false, "runtime": "long", "artifacts": ["json"], "self_test": null, "toolchain_items": [26], "sol_ids": ["optimization.experiment"], "note": "Sol's optimization.experiment was bench.pair on two commits plus correctness run separately; B2-T1 builds the harness (worktrees, correctness, resources, ADOPT/REVERT/KEEP)."},
+    {"id": "bench.bisect-step", "name": "git bisect run step over a benchmark verdict", "version": "planned", "category": "bench", "status": "pending", "card": "B2-T1", "kind": "detector", "command": "node tools/bench/bisect-step.mjs", "path": "tools/bench/bisect-step.mjs", "inputs": ["good/bad refs"], "outputs": ["bisect exit code"], "dependencies": ["bench.run"], "platforms": ["linux"], "destructive": false, "runtime": "long", "artifacts": ["stdout"], "self_test": null, "toolchain_items": [24]},
+    {"id": "process.tree", "name": "Process tree monitor: pid, ppid, role, RSS, CPU %, lifetime, exit", "version": "planned", "category": "process", "status": "pending", "card": "B2-T3", "kind": "measure", "command": "node tools/measure/process-tree.mjs --once --json", "path": "tools/measure/process-tree.mjs", "inputs": ["app pid"], "outputs": ["processes[] over time"], "dependencies": ["process.pss"], "platforms": ["linux"], "destructive": false, "runtime": "seconds", "artifacts": ["json"], "self_test": null, "toolchain_items": [4], "sol_ids": ["process.tree"], "note": "Sol's integrations/process-sampler.py (Python; descendants with role, RSS, CPU ticks, I/O, fds) is not copied: Python beside process/pss.mjs would be a second /proc reader. Card B2-T3 builds it on process/pss.mjs."},
+    {"id": "process.memory", "name": "Memory profiler: smaps_rollup, status, CDP heap, station-switch leak loop", "version": "planned", "category": "process", "status": "pending", "card": "B2-T3", "kind": "measure", "command": "node tools/measure/memory.mjs", "path": "tools/measure/memory.mjs", "inputs": ["app pid"], "outputs": ["RSS, private, shared, heap, peak; after GC"], "dependencies": ["process.pss", "process.soak"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["json"], "self_test": null, "toolchain_items": [5], "sol_ids": ["memory.probe"]},
+    {"id": "process.cpu", "name": "CPU profiler: perf stat or /proc stat deltas; node --cpu-prof", "version": "planned", "category": "process", "status": "pending", "card": "B2-T3", "kind": "measure", "command": "node tools/measure/cpu.mjs", "path": "tools/measure/cpu.mjs", "inputs": ["app pid"], "outputs": ["user/sys/wall, cycles, context switches, hot functions"], "dependencies": ["perf (optional)"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["json", "cpuprofile"], "self_test": null, "toolchain_items": [6], "sol_ids": ["cpu.profile"], "note": "Sol: node --cpu-prof <entry>; perf stat optional. Card B2-T3."},
+    {"id": "process.gpu", "name": "GPU profiler: nvidia-smi dmon/pmon, GPU process identity, feature status", "version": "planned", "category": "process", "status": "pending", "card": "B2-T3", "kind": "measure", "command": "node tools/measure/gpu.mjs", "path": "tools/measure/gpu.mjs", "inputs": ["app pid"], "outputs": ["utilization, VRAM, GPU process"], "dependencies": ["nvidia-smi"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["json"], "self_test": null, "toolchain_items": [7], "sol_ids": ["gpu.profile"], "note": "Sol: nvidia-smi dmon/pmon on the app's GPU process. Card B2-T3."},
+    {"id": "process.io", "name": "Filesystem/I/O profiler: strace -c and /proc/<pid>/io", "version": "planned", "category": "process", "status": "pending", "card": "B2-T3", "kind": "measure", "command": "node tools/measure/io.mjs", "path": "tools/measure/io.mjs", "inputs": ["app pid"], "outputs": ["opens, reads, writes, fsync, bytes, duplicates"], "dependencies": ["strace"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["json"], "self_test": null, "toolchain_items": [8], "sol_ids": ["io.profile"], "note": "Sol: strace -c -f -p <pid>, only under an authorized test workload. Card B2-T3."},
+    {"id": "chromium.profile", "name": "Chromium profiler over CDP: tracing, Performance, Profiler, HeapProfiler", "version": "planned", "category": "chromium", "status": "pending", "card": "B2-T4", "kind": "measure", "command": "node tools/measure/chromium-profile.mjs", "path": "tools/measure/chromium-profile.mjs", "reference": "chromium/electron-probe.mjs", "inputs": ["named workflow: launch, Board ready, station switch"], "outputs": ["scripting, style, layout, paint, composite, long tasks, frames, heap, GC"], "dependencies": ["CDP port", "Xvfb"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["json", "trace"], "self_test": null, "toolchain_items": [3], "sol_ids": ["trace.electron"], "note": "Sol's in-process Electron probe (contentTracing, webContents.debugger Performance, app.getAppMetrics) copied as chromium/electron-probe.mjs, unproven. Card B2-T4 builds the CDP profiler from outside the app (tools/measure/chromium-profile.mjs on the card)."},
+    {"id": "imports.profile", "name": "Import profiler: module count, graph, waves, durations, loaded-before-needed", "version": "planned", "category": "imports", "status": "pending", "card": "B2-T5", "kind": "measure", "command": "node tools/measure/imports.mjs", "path": "tools/measure/imports.mjs", "inputs": ["running app"], "outputs": ["import graph and timings"], "dependencies": ["CDP"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["json"], "self_test": null, "toolchain_items": [12], "sol_ids": ["imports.profile"]},
+    {"id": "bundle.analyze", "name": "Bundle analyzer over an esbuild metafile (analysis only)", "version": "planned", "category": "bundle", "status": "pending", "card": "B2-T5", "kind": "measure", "command": "node tools/measure/bundle.mjs", "path": "tools/measure/bundle.mjs", "reference": "bundle/report.mjs", "inputs": ["entry points"], "outputs": ["sizes, modules, duplicates, compressed size"], "dependencies": ["esbuild (pinned devDependency)"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["json"], "self_test": null, "toolchain_items": [13], "sol_ids": ["bundle.analyze"], "note": "Sol's esbuild-metafile report copied as bundle/report.mjs, unproven and with no gate. Card B2-T5 (tools/measure/bundle.mjs on the card) runs the build; the analysis should live here once proven."},
+    {"id": "architecture.dependency-rules", "name": "Dependency/architecture invariants (dependency-cruiser): cycles, forbidden imports, single resolver/pool owner", "version": "planned", "category": "architecture", "status": "pending", "card": "B2-T5", "kind": "gate", "command": "node --test tools/test/architecture.test.mjs (rules in .dependency-cruiser.cjs)", "path": ".dependency-cruiser.cjs + tools/test/architecture.test.mjs", "inputs": ["repo"], "outputs": ["rule violations"], "dependencies": ["dependency-cruiser (pinned)"], "platforms": ["linux", "darwin", "win32"], "destructive": false, "runtime": "seconds", "artifacts": ["stdout"], "self_test": null, "toolchain_items": [14]},
+    {"id": "database.routes-profile", "name": "Routing registry profile: route-map load, NOTIFY latency, reload, reconcile", "version": "planned", "category": "database", "status": "pending", "card": "B2-T6b", "kind": "measure", "command": "node tools/measure/pg-profile.mjs --routes", "path": "tools/measure/pg-profile.mjs --routes (fork/next)", "inputs": ["test database"], "outputs": ["distributions N>=20, JSON"], "dependencies": ["database.pg-profile"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["json"], "self_test": null, "toolchain_items": [10]},
+    {"id": "e2e.playwright", "name": "Playwright Electron end-to-end workflows with timing", "version": "planned", "category": "e2e", "status": "pending", "card": "B2-T7", "kind": "gate", "command": "npx playwright test --config tests/playwright/playwright.config.mjs", "path": "tests/playwright/", "reference": "e2e/electron-e2e.mjs", "inputs": ["app"], "outputs": ["Playwright report"], "dependencies": ["@playwright/test (pinned)", "Xvfb"], "platforms": ["linux"], "destructive": false, "runtime": "long", "artifacts": ["html", "png"], "self_test": null, "toolchain_items": [17], "sol_ids": ["e2e.electron"], "note": "Sol's Playwright _electron step runner copied as e2e/electron-e2e.mjs, unproven (Workspace has no Playwright installed). Card B2-T7 proves or replaces it."},
+    {"id": "visual.regression", "name": "Visual regression: approved references, pixel diff on stable surfaces", "version": "planned", "category": "visual", "status": "pending", "card": "B2-T7", "kind": "gate", "command": "npx playwright test --config tests/playwright/playwright.config.mjs tests/playwright/visual", "path": "tests/playwright/visual/", "inputs": ["approved references"], "outputs": ["diff images, pass/fail"], "dependencies": ["e2e.playwright"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["png"], "self_test": null, "toolchain_items": [18], "sol_ids": ["visual.compare"]},
+    {"id": "ports.registry", "name": "Port registry snapshot and collision check", "version": "planned", "category": "ports", "status": "pending", "card": "B2-T8", "kind": "gate", "command": "node tools/measure/ports.mjs snapshot | check <port> [--service name]", "path": "tools/measure/ports.mjs", "inputs": ["port"], "outputs": ["listening sockets with owner, unit, classification; check exit 0 free / 1 taken"], "dependencies": ["ports.listening"], "platforms": ["linux"], "destructive": false, "runtime": "seconds", "artifacts": ["json"], "self_test": null, "toolchain_items": [21], "note": "Workspace's 1000-line registry and snapshot/check CLI on card B2-T8. Its registry becomes the adapter's \"ports\" (checked by ports.listening --adapter); its owner/collision logic folds into ports.listening; no second checker."},
+    {"id": "architecture.routing-graph", "name": "Routing graph from the implementation vs the declared contract", "version": "planned", "category": "architecture", "status": "pending", "card": "B2-T10", "kind": "gate", "command": "node tools/measure/routing-graph.mjs --check", "path": "tools/measure/routing-graph.mjs + docs/routing/contract.json (fork/next)", "inputs": ["repo", "RO boot on e2e ports"], "outputs": ["JSON + .dot; --check exit 1 on difference"], "dependencies": ["test database"], "platforms": ["linux"], "destructive": false, "runtime": "minutes", "artifacts": ["json", "dot"], "self_test": null, "toolchain_items": [14]},
+    {"id": "correctness.flake", "name": "Flake detector: each test file N times on its own database", "version": "planned", "category": "correctness", "status": "pending", "card": "B2-T11", "kind": "detector", "command": "node tools/measure/flake.mjs --runs N [--only <glob>]", "path": "tools/measure/flake.mjs", "inputs": ["test files"], "outputs": ["flake rate per file; FLAKY exits 1"], "dependencies": ["test database"], "platforms": ["linux"], "destructive": false, "runtime": "long", "artifacts": ["json"], "self_test": null, "toolchain_items": [15]},
+    {"id": "logs.provenance", "name": "Command provenance recorder: SHA, argv, ancestry, unit, exit, output hashes", "version": "app", "category": "logs", "status": "adapter", "kind": "measure", "command": "adapter tools.logs.provenance.command (Workspace: node tools/obs/record.mjs --kind <gate|bench|acceptance|e2e> -- <argv...>; the bound command shows the last gate record: node tools/obs/show.mjs last --kind gate)", "path": null, "inputs": ["a command"], "outputs": [".research-ops/provenance/commands.jsonl"], "dependencies": [], "platforms": ["linux"], "destructive": false, "runtime": "seconds", "artifacts": ["jsonl"], "self_test": "adapter tools.logs.provenance.self_test", "toolchain_items": [23], "note": "Merged on Workspace main with card B2-T12 (5b9236e): the recorder wraps merge-card's gate commands. ae receipts (every ae run and ae gates) are the toolkit's own record; the two meet when merge-card runs ae gates (see gates.run)."},
+    {"id": "acceptance.replay", "name": "Replay recorded xdotool/CDP flows with pixel, text, element and DB-row checks", "version": "planned", "category": "acceptance", "status": "pending", "card": "B2-01", "kind": "gate", "command": "tools/computer_use/* (planned)", "path": "tools/computer_use/", "inputs": ["recorded flow"], "outputs": ["JSON pass/fail report"], "dependencies": ["Xvfb", "xdotool pinned to :99"], "platforms": ["linux"], "destructive": false, "runtime": "long", "artifacts": ["json", "png"], "self_test": null, "toolchain_items": [17]}
+  ]
+}

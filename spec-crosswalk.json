@@ -1,0 +1,273 @@
+{
+  "schema": "app-engineering.spec-crosswalk/1",
+  "spec": "the owner's 26-item toolchain specification of 2026-09-24 (Workspace docs/quality/TOOLCHAIN.md; generic form TOOLCHAIN.md here)",
+  "source": "Sol's catalog/spec-crosswalk.json (App Builder Kit 0.1); tool_ids are this manifest's ids, sol_tool_id and sol_delivery are Sol's original row. Status lives in manifest.json only (`ae list`); `ae selftest` (catalog) fails when an id here is not a manifest tool.",
+  "spec_count": 26,
+  "items": [
+    {
+      "item": "01",
+      "requirement": "Benchmark orchestrator",
+      "tool_ids": [
+        "bench.pair",
+        "bench.run",
+        "bench.stats"
+      ],
+      "sol_tool_id": "bench.run",
+      "sol_delivery": "built"
+    },
+    {
+      "item": "02",
+      "requirement": "Application timing instrumentation",
+      "tool_ids": [
+        "timing.waterfall",
+        "timing.app-metrics"
+      ],
+      "sol_tool_id": "timing.node",
+      "sol_delivery": "built"
+    },
+    {
+      "item": "03",
+      "requirement": "Electron and Chromium profiler",
+      "tool_ids": [
+        "chromium.profile"
+      ],
+      "sol_tool_id": "trace.electron",
+      "sol_delivery": "integration"
+    },
+    {
+      "item": "04",
+      "requirement": "Electron process monitor",
+      "tool_ids": [
+        "process.tree",
+        "process.pss"
+      ],
+      "sol_tool_id": "process.tree",
+      "sol_delivery": "built"
+    },
+    {
+      "item": "05",
+      "requirement": "Memory profiler",
+      "tool_ids": [
+        "process.memory",
+        "process.pss",
+        "process.soak"
+      ],
+      "sol_tool_id": "memory.probe",
+      "sol_delivery": "integration"
+    },
+    {
+      "item": "06",
+      "requirement": "CPU profiler",
+      "tool_ids": [
+        "process.cpu"
+      ],
+      "sol_tool_id": "cpu.profile",
+      "sol_delivery": "adapter"
+    },
+    {
+      "item": "07",
+      "requirement": "GPU profiler",
+      "tool_ids": [
+        "process.gpu"
+      ],
+      "sol_tool_id": "gpu.profile",
+      "sol_delivery": "adapter"
+    },
+    {
+      "item": "08",
+      "requirement": "Filesystem and disk I/O profiler",
+      "tool_ids": [
+        "process.io"
+      ],
+      "sol_tool_id": "io.profile",
+      "sol_delivery": "adapter"
+    },
+    {
+      "item": "09",
+      "requirement": "IPC, network and service profiler",
+      "tool_ids": [
+        "ipc.trace",
+        "ports.listening"
+      ],
+      "sol_tool_id": "ipc.trace",
+      "sol_delivery": "integration"
+    },
+    {
+      "item": "10",
+      "requirement": "Postgres profiler",
+      "tool_ids": [
+        "database.pg-profile",
+        "database.pg-plan",
+        "database.routes-profile",
+        "database.index-coverage"
+      ],
+      "sol_tool_id": "postgres.explain",
+      "sol_delivery": "adapter"
+    },
+    {
+      "item": "11",
+      "requirement": "SQLite profiler",
+      "tool_ids": [
+        "database.sqlite-explain"
+      ],
+      "sol_tool_id": "sqlite.explain",
+      "sol_delivery": "built"
+    },
+    {
+      "item": "12",
+      "requirement": "Module and import profiler",
+      "tool_ids": [
+        "imports.profile"
+      ],
+      "sol_tool_id": "imports.profile",
+      "sol_delivery": "adapter"
+    },
+    {
+      "item": "13",
+      "requirement": "Bundle analyzer",
+      "tool_ids": [
+        "bundle.analyze"
+      ],
+      "sol_tool_id": "bundle.analyze",
+      "sol_delivery": "built"
+    },
+    {
+      "item": "14",
+      "requirement": "Dependency and architecture analyzer",
+      "tool_ids": [
+        "architecture.rules",
+        "architecture.dependency-rules",
+        "architecture.routing-graph",
+        "architecture.complexity",
+        "architecture.dead-exports"
+      ],
+      "sol_tool_id": "architecture.check",
+      "sol_delivery": "built"
+    },
+    {
+      "item": "15",
+      "requirement": "Unit test harness",
+      "tool_ids": [
+        "correctness.suite",
+        "correctness.flake"
+      ],
+      "sol_tool_id": "unit.run",
+      "sol_delivery": "adapter"
+    },
+    {
+      "item": "16",
+      "requirement": "Integration test harness",
+      "tool_ids": [
+        "correctness.suite"
+      ],
+      "sol_tool_id": "integration.run",
+      "sol_delivery": "adapter"
+    },
+    {
+      "item": "17",
+      "requirement": "Electron end-to-end tests",
+      "tool_ids": [
+        "e2e.suite",
+        "e2e.playwright",
+        "acceptance.proof",
+        "acceptance.evidence",
+        "acceptance.replay"
+      ],
+      "sol_tool_id": "e2e.electron",
+      "sol_delivery": "integration"
+    },
+    {
+      "item": "18",
+      "requirement": "Visual regression tests",
+      "tool_ids": [
+        "visual.regression",
+        "visual.contrast",
+        "visual.theme-probe",
+        "visual.harmony",
+        "visual.color-wheel",
+        "visual.proposals"
+      ],
+      "sol_tool_id": "visual.compare",
+      "sol_delivery": "adapter"
+    },
+    {
+      "item": "19",
+      "requirement": "API and contract tests",
+      "tool_ids": [
+        "contracts.api"
+      ],
+      "sol_tool_id": "contracts.run",
+      "sol_delivery": "adapter"
+    },
+    {
+      "item": "20",
+      "requirement": "Database migration tests",
+      "tool_ids": [
+        "migrations.upgrade"
+      ],
+      "sol_tool_id": "migrations.verify",
+      "sol_delivery": "adapter"
+    },
+    {
+      "item": "21",
+      "requirement": "Failure and chaos tests",
+      "tool_ids": [
+        "chaos.suite",
+        "ports.registry",
+        "ports.listening"
+      ],
+      "sol_tool_id": "chaos.run",
+      "sol_delivery": "adapter"
+    },
+    {
+      "item": "22",
+      "requirement": "Log and error capture",
+      "tool_ids": [
+        "logs.events",
+        "logs.secret-scan"
+      ],
+      "sol_tool_id": "logs.validate",
+      "sol_delivery": "integration"
+    },
+    {
+      "item": "23",
+      "requirement": "Command and process provenance",
+      "tool_ids": [
+        "logs.provenance",
+        "gates.run",
+        "gates.receipt"
+      ],
+      "sol_tool_id": "commands.provenance",
+      "sol_delivery": "built"
+    },
+    {
+      "item": "24",
+      "requirement": "Regression ledger",
+      "tool_ids": [
+        "bench.pair",
+        "bench.threshold"
+      ],
+      "sol_tool_id": "regression.ledger",
+      "sol_delivery": "built"
+    },
+    {
+      "item": "25",
+      "requirement": "Automated performance gate",
+      "tool_ids": [
+        "bench.compare",
+        "bench.threshold"
+      ],
+      "sol_tool_id": "bench.compare",
+      "sol_delivery": "built"
+    },
+    {
+      "item": "26",
+      "requirement": "Optimization experiment harness",
+      "tool_ids": [
+        "bench.experiment"
+      ],
+      "sol_tool_id": "optimization.experiment",
+      "sol_delivery": "integration"
+    }
+  ]
+}

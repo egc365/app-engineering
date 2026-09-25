@@ -1,0 +1,15 @@
+{
+  "name": "app-engineering",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Application engineering toolkit: generic measurement, gate and detector engines; apps plug in through app-engineering.json.",
+  "type": "module",
+  "bin": { "ae": "bin/ae" },
+  "scripts": {
+    "selftest": "node bin/ae selftest"
+  },
+  "dependencies": {
+    "acorn": "8.18.0"
+  },
+  "engines": { "node": ">=22" }
+}

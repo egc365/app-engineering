@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>App Builder · Color Harmony</title>
+<style>
+:root{color-scheme:dark;font:16px/1.5 system-ui,Arial;background:#0c1119;color:#e7eef8}
+*{box-sizing:border-box}body{margin:0 auto;max-width:1180px;padding:32px 24px}
+header{border-bottom:1px solid #293849;padding-bottom:16px;margin-bottom:26px}
+h1{font-size:clamp(28px,4vw,42px);letter-spacing:-.04em;margin:0}h2{font-size:21px;margin:0 0 12px}
+p{color:#aebed0;margin:8px 0}main{display:grid;grid-template-columns:minmax(290px,430px) 1fr;gap:40px}
+.wheelwrap{position:relative;width:min(100%,420px);aspect-ratio:1}canvas{width:100%;height:100%;cursor:crosshair;touch-action:none}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+label{display:block;font-weight:650;font-size:14px}label span{display:block;margin:0 0 5px;color:#b7c7d8}
+input,select,button{width:100%;font:inherit;background:#182432;color:#f6f8fa;border:1px solid #52657a;border-radius:8px;padding:10px}
+input[type=range]{padding:8px 0;accent-color:#66a5ed}input[type=color]{height:44px;padding:4px}
+.preview{height:118px;border-radius:12px;margin:8px 0 18px;border:1px solid #53677d;display:flex;align-items:end;padding:15px;color:white;font-size:22px;font-weight:750}
+.swatches{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+.swatch{min-height:154px;border:1px solid #415267;border-radius:10px;overflow:hidden;background:#15202c}
+.chip{height:72px}.info{padding:8px;font-size:13px;color:#dbe8f5}.info strong{font-size:15px}
+.good{color:#a2e9af}.bad{color:#ffb5ae}.note{border-top:1px solid #293849;margin-top:24px;padding-top:18px;color:#aebed0}
+button{cursor:pointer}button:hover{background:#2b4560}code{color:#b5d6fa}
+@media(max-width:780px){main{grid-template-columns:1fr}.wheelwrap{margin:auto}.controls{grid-template-columns:1fr 1fr}}
+</style>
+</head><body>
+<header><h1>Color harmony picker</h1><p>Choose hue on the wheel. Change saturation, value, and harmony. Check text contrast against the actual background.</p></header>
+<main>
+<section aria-label="Color wheel and controls">
+  <div class="wheelwrap"><canvas id="wheel" width="840" height="840" aria-label="Hue and saturation wheel"></canvas></div>
+  <div class="controls">
+    <label><span>Base color</span><input id="hex" value="#3569A4" pattern="#[0-9a-fA-F]{6}" aria-label="Base color hex"></label>
+    <label><span>Background</span><input id="background" value="#FFFFFF" pattern="#[0-9a-fA-F]{6}" aria-label="Background hex"></label>
+    <label><span>Harmony</span><select id="harmony"><option>complementary</option><option>analogous</option><option>triadic</option><option>split-complementary</option><option>tetradic</option><option>monochromatic</option></select></label>
+    <label><span>Value <output id="valueLabel">65%</output></span><input type="range" id="value" min="5" max="100" value="65"></label>
+  </div>
+</section>
+<section aria-live="polite">
+  <h2>Palette</h2><div class="preview" id="preview">Selected base color</div>
+  <p id="explanation"></p><div class="swatches" id="swatches"></div>
+  <button id="copy" type="button">Copy palette JSON</button>
+  <p class="note">The harmony rule chooses hue angles in HSV. It does not establish accessibility or perceived balance. Normal text needs a 4.5:1 contrast ratio for WCAG AA; large text needs 3:1. Review the actual screen and color use.</p>
+</section></main>
+<script>
+const $=id=>document.getElementById(id), wheel=$('wheel'),ctx=wheel.getContext('2d');
+const offsets={complementary:[0,180],analogous:[-30,0,30],triadic:[0,120,240],'split-complementary':[0,150,210],tetradic:[0,60,180,240],monochromatic:[0]};
+let hue=212,sat=.68,val=.65,palette=[];
+function clamp(x,a=0,b=1){return Math.min(b,Math.max(a,x))}
+function hsv(h,s,v){const i=Math.floor(h/60)%6,f=h/60-i,p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);const cases=[[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]];return cases[i]}
+function rgbHex(a){return '#'+a.map(x=>Math.round(clamp(x)*255).toString(16).padStart(2,'0')).join('').toUpperCase()}
+function fromHex(hex){const a=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255),max=Math.max(...a),min=Math.min(...a),d=max-min;let h=0;if(d){switch(max){case a[0]:h=((a[1]-a[2])/d)%6;break;case a[1]:h=(a[2]-a[0])/d+2;break;default:h=(a[0]-a[1])/d+4;}h=(h*60+360)%360}return [h,max?d/max:0,max]}
+function luminance(hex){let c=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2]}
+function contrast(a,b){let x=luminance(a),y=luminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)}
+function drawWheel(){let im=ctx.createImageData(840,840),r=400;for(let y=0;y<840;y++)for(let x=0;x<840;x++){let dx=x-420,dy=y-420,rad=Math.hypot(dx,dy),i=(y*840+x)*4;if(rad<=r){let h=(Math.atan2(dy,dx)*180/Math.PI+360)%360;let rgb=hsv(h,rad/r,1);for(let j=0;j<3;j++)im.data[i+j]=Math.round(rgb[j]*255);im.data[i+3]=255;}}ctx.putImageData(im,0,0);ctx.beginPath();let angle=hue*Math.PI/180;ctx.arc(420+Math.cos(angle)*sat*r,420+Math.sin(angle)*sat*r,11,0,2*Math.PI);ctx.strokeStyle='#0a1018';ctx.lineWidth=7;ctx.stroke();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke()}
+function render(){const bg=$('background').value,mode=$('harmony').value;if(!/^#[0-9a-fA-F]{6}$/.test(bg))return;let colors=mode==='monochromatic'?[[sat*.65,val*.65],[sat,val],[sat*.85,Math.min(1,val*1.2)]].map(([s,v])=>rgbHex(hsv(hue,s,v))):offsets[mode].map(o=>rgbHex(hsv((hue+o+360)%360,sat,val)));
+palette=colors.map(hex=>({hex,contrast:Number(contrast(hex,bg).toFixed(2)),normalTextAA:contrast(hex,bg)>=4.5,largeTextAA:contrast(hex,bg)>=3}));
+$('hex').value=rgbHex(hsv(hue,sat,val));$('value').value=Math.round(val*100);$('valueLabel').textContent=Math.round(val*100)+'%';$('preview').style.background=$('hex').value;$('explanation').textContent=`${mode} · ${colors.length} swatches · contrast against ${bg.toUpperCase()}`;
+$('swatches').replaceChildren(...palette.map((entry,i)=>{let card=document.createElement('div');card.className='swatch';let chip=document.createElement('div');chip.className='chip';chip.style.background=entry.hex;let info=document.createElement('div');info.className='info';let title=document.createElement('strong');title.textContent=entry.hex;let line=document.createElement('div');line.textContent=`${entry.contrast}:1 contrast`;let badge=document.createElement('div');badge.className=entry.normalTextAA?'good':'bad';badge.textContent=entry.normalTextAA?'AA normal text':'Below AA normal text';info.append(title,line,badge);card.append(chip,info);return card}));drawWheel()}
+wheel.addEventListener('pointerdown',ev=>{let box=wheel.getBoundingClientRect(),dx=(ev.clientX-box.left)/box.width*840-420,dy=(ev.clientY-box.top)/box.height*840-420;hue=(Math.atan2(dy,dx)*180/Math.PI+360)%360;sat=clamp(Math.hypot(dx,dy)/400);render()});
+$('hex').addEventListener('change',()=>{if(/^#[0-9a-fA-F]{6}$/.test($('hex').value)){[hue,sat,val]=fromHex($('hex').value);render()}});
+$('value').addEventListener('input',()=>{val=Number($('value').value)/100;render()});
+for(let id of ['background','harmony'])$(id).addEventListener('change',render);
+$('copy').addEventListener('click',()=>navigator.clipboard.writeText(JSON.stringify({base:$('hex').value,harmony:$('harmony').value,background:$('background').value,palette},null,2)));
+render();
+</script></body></html>
