@@ -34,7 +34,7 @@ Run on the owner's machine, where the books live (a cloud session cannot see `~/
    ```
    python3 -I extract/find_books.py ~/Downloads ~/Documents --out ~/Documents/prompts/book_inventory.csv
    ```
-   ORPHAN rows are books in Downloads with no copy in Documents: file them, then extract.
+   It also checks the workspace Postgres corpus (corpus.sources hashes, 127.0.0.1:5433, creds from ~/.config/workspace-app/db.env). ORPHAN = in Downloads, not in Documents, not in the corpus database. IN-DB-NOT-FILED = ingested but the file was never filed in Documents.
 
 1. **Extract, deterministically.**
    ```
