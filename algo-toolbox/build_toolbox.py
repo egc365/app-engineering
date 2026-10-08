@@ -210,7 +210,7 @@ def sheet_six_sigma(wb):
 
 def sheet_ct(wb):
     ws = wb.create_sheet("Computational Thinking")
-    headers = ["ID", "Method", "Definition", "How it applies to Six Sigma", "DMAIC phases", "Six Sigma tools that use it", "Source status"]
+    headers = ["ID", "Method", "Definition", "How it applies to Six Sigma", "DMAIC phases (from tags)", "Six Sigma tools that use it", "Source status"]
     widths = [12, 24, 40, 50, 16, 34, 13]
     dark, light = SHEET_COLOR["ct"]
     title_row(ws, "Computational thinking methods and how they apply to Six Sigma", len(headers), dark)
@@ -218,7 +218,8 @@ def sheet_ct(wb):
     r = 3
     for c in D.CT:
         tools = "\n".join(t["tool"] for t in D.SIX_SIGMA if c["id"] in t["ct"]) or "-"
-        body_row(ws, r, [c["id"], c["method"], c["definition"], c["applies"], c["phases"], tools, "baseline"], widths, light if r % 2 else None)
+        phases = ", ".join(p for p in D.PHASES if any(t["phase"] == p and c["id"] in t["ct"] for t in D.SIX_SIGMA)) or "-"
+        body_row(ws, r, [c["id"], c["method"], c["definition"], c["applies"], phases, tools, "baseline"], widths, light if r % 2 else None)
         ws.cell(r, 2).font = Font(name=FONT, size=11, bold=True)
         r += 1
     ws.freeze_panes = "C3"
@@ -247,13 +248,13 @@ def sheet_stats(wb):
 def sheet_decisions(wb):
     ws = wb.create_sheet("Decision Algorithms")
     dark, light = SHEET_COLOR["dec"]
-    widths = [22, 22, 18, 36, 40]
-    title_row(ws, "Decision algorithms: test selection, chart selection, project loop", 5, dark)
+    widths = [22, 22, 18, 36, 40, 10, 10, 10, 10]
+    title_row(ws, "Decision algorithms: test selection, chart selection, project loop", 9, dark)
     r = 2
 
     def section(text):
         nonlocal r
-        ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=5)
+        ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=9)
         c = ws.cell(r, 1, text)
         c.font = Font(name=FONT, size=13, bold=True, color="FFFFFF")
         c.fill = fill(dark)
@@ -273,6 +274,26 @@ def sheet_decisions(wb):
     r += 1
     for row in D.CHART_ROADMAP:
         body_row(ws, r, list(row), widths, light if r % 2 else None)
+        r += 1
+    r += 1
+    section("2b. Control chart constants by subgroup size n")
+    cw = ["n", "A2", "D3", "D4", "A3", "B3", "B4", "d2", "c4"]
+    for i, h in enumerate(cw, start=1):
+        c = ws.cell(r, i, h)
+        c.font = Font(name=FONT, size=11, bold=True, color="FFFFFF")
+        c.fill = fill("44546A")
+        c.alignment = CENTER
+        c.border = BOX
+    r += 1
+    for k, row in enumerate(D.CHART_CONSTANTS):
+        for i, v in enumerate(row, start=1):
+            c = ws.cell(r, i, v)
+            c.font = Font(name=FONT, size=11, bold=(i == 1))
+            c.alignment = Alignment(horizontal="center")
+            c.border = BOX
+            c.number_format = "0" if i == 1 else ("0.0000" if i == 9 else "0.000")
+            if k % 2:
+                c.fill = fill(light)
         r += 1
     r += 1
     section("3. Project loop with stop conditions and term limits")
@@ -341,6 +362,13 @@ def sheet_failures(wb):
         ws.row_dimensions[r].height = 20
     ws.column_dimensions["A"].hidden = True
     ws.column_dimensions["D"].hidden = True
+    rr = 4 + n
+    ws[f"B{rr}"] = "Uncategorized log rows (must read 0)"
+    ws[f"C{rr}"] = f"=COUNTA({log})-SUM($C$4:$C${3 + n})"
+    for col in "BC":
+        ws[f"{col}{rr}"].font = Font(name=FONT, size=11, bold=True, color=dark)
+        ws[f"{col}{rr}"].border = BOX
+    ws[f"C{rr}"].alignment = Alignment(horizontal="center")
     bar = BarChart()
     bar.type = "col"
     bar.title = "Failure Pareto"
@@ -358,7 +386,7 @@ def sheet_failures(wb):
     bar += line
     bar.height, bar.width = 11, 18.5
     bar.legend.position = "b"
-    ws.add_chart(bar, f"B{5 + n}")
+    ws.add_chart(bar, f"B{6 + n}")
     ws.freeze_panes = "A4"
     setup_page(ws, "Failure Pareto", 3, one_page=True, portrait=True)
 
@@ -396,6 +424,12 @@ def main():
             assert i in ST_BY_ID, (t["tool"], i)
     for row in D.FAILURE_SEED:
         assert row[3] in D.FAILURE_CATEGORIES, row
+    import math as m
+    for n, a2, d3, d4, a3, b3, b4, d2, c4 in D.CHART_CONSTANTS:  # recompute the derived constants
+        assert abs(a2 - 3 / (d2 * m.sqrt(n))) < 0.002, ("A2", n)
+        assert abs(a3 - 3 / (c4 * m.sqrt(n))) < 0.002, ("A3", n)
+        assert abs(b4 - (1 + 3 * m.sqrt(1 - c4 ** 2) / c4)) < 0.002, ("B4", n)
+        assert abs(b3 - max(0.0, 1 - 3 * m.sqrt(1 - c4 ** 2) / c4)) < 0.002, ("B3", n)
     wb.save(OUT)
     print(f"wrote {OUT} sheets={wb.sheetnames} six_sigma={len(D.SIX_SIGMA)} ct={len(D.CT)} stats={len(D.STATS)}")
 

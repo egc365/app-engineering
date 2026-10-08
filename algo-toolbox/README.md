@@ -13,7 +13,7 @@ keeps. This is the algorithm the projects improve over time.
 | `extract/extract_methods.py` | Deterministic book extractor (PyMuPDF, no language model). |
 | `extract/lexicons.json` | Keyword lexicons: `computational_thinking`, `six_sigma`, `statistics`. |
 | `extract/selftest.py` | Proves the extractor finds definitions, procedures, pseudocode, named methods, and is byte-deterministic. |
-| `REVIEW_FABLE.md` | Independent technical review of the workbook content. |
+| `REVIEW_FABLE.md` | Independent technical review (8 errors, 31 suggestions). All 8 errors and the substantive suggestions are applied. |
 
 ## Sheets
 
