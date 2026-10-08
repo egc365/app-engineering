@@ -1,143 +1,184 @@
-# STOP AND REPORT — end-of-procedure protocol
+# Stop and report: end-of-procedure protocol
 
-Applies to every agent at the end of any engineering, robotics, or project
-procedure, or whenever you are told to stop. Run it in order, every time,
-without being asked. It is common sense, written down.
+Run this at the end of every engineering, robotics, or project procedure,
+and whenever you are told to stop. Run it in order, every time, unprompted.
+Each step ends on a **done when** line. A step is finished only when that
+line is true and you can show the evidence.
 
-Part A secures the work. Part B consolidates and grades it. Part C reports.
+Home of this file: `Documents/prompts/` (owner's master-prompt folder).
+Algorithm reference: `algo-toolbox/ALGO_TOOLBOX.xlsx`.
+
+Part A secures the work. Part B audits yourself. Part C consolidates and
+grades. Part D reports.
 
 ---
 
-## Part A — Secure the work
+## Part A: Secure the work
 
-### A1. Stop and pin
-Freeze the work exactly where it is. Start nothing new. Note the exact
-step of the procedure you are on.
+### A1. Pin
+Freeze the work where it is and note the exact procedure step you are on.
+**Done when** the step is written in the build report.
 
 ### A2. Secure everything
-Every artifact the project produced is saved, committed, and pushed: CAD,
-source, schematics, PCB files, build files, data, tables, images, reports.
-Nothing lives only in the session. If it is not on GitHub, it does not exist.
+Commit and push every artifact: CAD, source, schematics, PCB files, build
+files, data, tables, images, reports. GitHub is the record.
+**Done when** `git status` is clean and the branch exists on the remote.
 
 ### A3. Push to the project's own branch
-Push to GitHub on a dedicated branch named for the project
-(example: `two-arm-digital-gantry`). State the exact branch name in your
-final message. No pull requests, no merge requests, no review requests.
-Push the branch and stop.
+Use a dedicated branch named for the project (example:
+`two-arm-digital-gantry`). Push the branch and stop there: the owner opens
+pull requests, merges, and review requests.
+**Done when** the exact branch name is in your report.
 
 ### A4. File it in the correct engineering category
-Every project lives in exactly one place:
 `Documents → Robotics & Engineering → <engineering category> → <project>`.
-Pick the category that matches the work (robots, mechanical, electronics,
-software, etc., per the category list in the universal prompt). Create the
-standard project folders inside it if they are missing, and put every
+Create the standard project folders if they are missing and put every
 artifact in its folder.
+**Done when** every artifact path sits under the project folder.
 
 ### A5. Register the project
-Add or update this project's row in the GitHub project list spreadsheet
-(XLSX) under `Robotics & Engineering → GitHub`. Use the existing file;
-create it only if it is missing. One row per design branch: project name,
-category, repo, branch, current phase, status, last updated, link.
+Add or update the project's row in the project list XLSX under
+`Robotics & Engineering → GitHub`: project, category, repo, branch, phase,
+status, last updated, link. Use the existing file.
+**Done when** the row shows today's date.
 
-### A6. Record your position
-Phase completed, phase in progress, next step, open blockers.
-
-### A7. Start or update the build report
-What was built, what was decided, what is verified, what is unverified,
-what is next. Publish every required table (motor table, BOM, pin map,
-etc.) in full. A published table is complete: every row has its
+### A6. Build report
+What was built, decided, verified, unverified, and next. Publish every
+required table (motor table, BOM, pin map) in full: every row carries
 dimensions, ratings, and source.
+**Done when** every table row has a value and a source in every column.
 
-### A8. No "unknown" entries
-"Unknown" is not a value. If a part has no datasheet, no repo, or no
-dimensions:
-1. Web-search it first.
-2. If it cannot be found, design it yourself with stated assumptions and
-   flag it as designed-not-sourced.
-3. If you can do neither, tell me exactly what to search for.
-Never ship a table row that reads "unknown".
+### A7. Every value is sourced or designed
+Each part gets a datasheet value, or a value you designed with stated
+assumptions and flagged `designed-not-sourced`, or the exact search terms
+the owner should run. Web-search first.
+**Done when** the word "unknown" appears nowhere in the deliverables.
 
-### A9. Images and CAD views: pagination is mandatory
-One clear subject per image. Legible labels, correct orientation, sane
-scale. Images numbered and captioned in order. Laid out so they read
-without zooming or scrolling. An image that cannot be read is a wasted
-turn and gets redone before you report.
+### A8. Pagination for images and CAD views
+One subject per image, legible labels, correct orientation, sane scale,
+numbered and captioned in order, readable without zooming.
+**Done when** you have opened each image yourself and it passes.
 
 ---
 
-## Part B — Consolidate and grade (the final reporting task)
+## Part B: Audit yourself before you report
 
-### B1. Sweep for redundancy and duplication
-Search the whole engineering tree, not just your project folder, for:
-- the same design stored in more than one place;
-- copied or forked files that have drifted apart;
-- projects that overlap or solve the same problem under different names;
-- duplicate tables, BOMs, or reports.
-List every hit with its path, size, and last-modified date.
+### B1. Restate the objective
+Copy the owner's original objective verbatim from the start of the session.
+List every deliverable it implies.
+**Done when** each deliverable is marked delivered, partial, or missing,
+with a path or reason.
 
-### B2. Homogenize the project
-One canonical home, one naming convention, one folder structure. Merge
-the duplicates into the canonical copy. Superseded copies move to an
-`_archive/<date>/` folder with a note pointing to the canonical copy.
-Do not delete anything without my approval.
+### B2. Review your full shell and tool history
+Read your entire history, start to finish, including compacted summaries.
+Context is cheap: 32,000 tokens is about 100 pages, so read it all.
+**Done when** you have a list of every command that failed, every retry,
+and every claim you made.
 
-### B3. Track every version by date
-Build a version ledger for the project: one row per version found, with
-date (ISO `YYYY-MM-DD`), source of the date (commit, file metadata, or
-date written in the document), location, author or agent, and what
-changed from the previous version. Sort oldest to newest. Add it as a
-`Versions` sheet in the project list XLSX and as `VERSIONS.md` in the
-project folder.
+### B3. Claim ledger
+Every claim you made gets evidence: a file path, a commit hash, or command
+output. "I made the CAD" needs the CAD file path.
+A failed lookup is a fact about the lookup. A 404, an empty search, or a
+missing file proves only that this method found nothing. Record it as
+"not found by <method> on <date>", and keep the question open.
+**Done when** every claim is marked verified (with evidence) or retracted.
 
-### B4. Independent review panel
-At least two reviewer agents grade every version independently. Reviewers
-do not see each other's scores until both have submitted. Each reviewer
-critically evaluates against all three rubrics below, using the current
-reference material, not memory. Every score cites evidence: a file, a
-drawing, a calculation, a test result. A score with no evidence is a zero.
+### B4. Sweep for the same mistake
+When you find one error, check every other output of the same kind for it.
+One wrong unit means checking every unit.
+**Done when** each error class you found has been searched for everywhere.
 
-1. **KSAO** — grade the work against the current KSAO framework
-   (Knowledge, Skills, Abilities, Other characteristics): which KSAOs the
-   work demonstrates, which it lacks, and the evidence for each.
-2. **Six Sigma (Black Belt standard)** — was the work run as DMAIC (or
-   DMADV/DFSS for new designs)? Defined CTQs, a measurement system that
-   was validated, data-driven root cause, verified improvement, controls
-   in place.
-3. **CAD and electronics design** — manufacturability, tolerances and
-   fits, interference checks, drawing standards; schematic correctness,
-   component ratings and derating, power budget, thermal, PCB layout
-   rules, BOM completeness.
+### B5. Objective score
+Score the session against B1: deliverables delivered ÷ deliverables
+required, as a percentage. State plainly how close you came.
+**Done when** the percentage and the gap list are in the report.
 
-Then reconcile: report where the reviewers agree, where they disagree and
-why, and measure their agreement (Cohen's kappa or ICC). Name the best
-version and the reasons it wins.
+### B6. Hand-off plan
+If anything is partial or missing, write the plan the next agent follows to
+finish it: steps, files, open questions, done-when for each.
+**Done when** a fresh agent could finish the work from the plan alone.
 
-### B5. Statistics and math standard
-Reviewers and summaries work at Six Sigma Black Belt level. Required
-references, in this order of authority:
+---
+
+## Part C: Consolidate and grade
+
+### C1. Sweep for redundancy and duplication
+Search the whole engineering tree for the same design stored twice, forks
+that drifted apart, overlapping projects, and duplicate tables or BOMs.
+**Done when** every hit is listed with path, size, and last-modified date.
+
+### C2. Homogenize
+One canonical home, one naming convention, one folder structure. Merge into
+the canonical copy and move superseded copies to `_archive/<date>/` with a
+pointer note. Deletions wait for owner approval.
+**Done when** each duplicate is merged or archived with a pointer.
+
+### C3. Version ledger
+One row per version: ISO date, date source (commit, file metadata, or
+in-document), location, author or agent, change from the prior version.
+Sort oldest to newest. Save as the `Versions` sheet of the project list
+XLSX and as `VERSIONS.md` in the project folder.
+**Done when** every version found in C1 has a row.
+
+### C4. Independent review panel
+At least two reviewer agents grade every version independently and submit
+before seeing each other's scores. Every score cites evidence: a file, a
+drawing, a calculation, a test result. A score without evidence is zero.
+Rubrics:
+1. **KSAO**: against the current KSAO framework (Knowledge, Skills,
+   Abilities, Other characteristics).
+2. **Six Sigma, Black Belt standard**: DMAIC (or DMADV/DFSS for new
+   designs), defined CTQs, validated measurement system, data-driven root
+   cause, verified improvement, controls in place.
+3. **CAD and electronics design**: manufacturability, tolerances and fits,
+   interference, drawing standards; schematic correctness, ratings and
+   derating, power budget, thermal, PCB rules, BOM completeness.
+Reconcile: agreement, disagreement and why, agreement statistic (Cohen's
+kappa or ICC). Name the best version and why it wins.
+**Done when** every version has two independent scores per rubric and a
+reconciled verdict.
+
+### C5. Statistics and math standard
+Black Belt level. References, in order of authority:
 1. the Six Sigma books and methodology in the reference library;
-2. Moore's statistics text (the owner's statistics book);
-3. the engineering statistics in the owner's engineering text.
+2. Moore, McCabe & Craig, *Introduction to the Practice of Statistics*;
+3. the engineering statistics in the owner's engineering text;
+4. *Introduction to Computational Thinking* (for algorithm and loop design).
+Every calculation shows formula, inputs, units, result, and is recomputed
+independently by a second reviewer with a real calculator or script. Every
+test states hypotheses, assumptions and their check, n, alpha, statistic,
+p-value, and confidence interval. Process data reports Cp, Cpk, DPMO, and
+sigma level where they apply; measurement data reports Gage R&R. Cited
+values name book, edition, and section.
+**Done when** every number in the deliverables has passed the second check.
 
-Every number is checked:
-- every calculation shown with formula, inputs, units, and result;
-- every result recomputed independently by a second reviewer;
-- every statistical test states its hypotheses, assumptions, the check
-  of those assumptions, sample size, alpha, test statistic, p-value, and
-  confidence interval;
-- process data reports capability (Cp, Cpk), DPMO, and sigma level where
-  it applies;
-- measurement data reports a Gage R&R or other measurement-system check;
-- a cited value names the book, edition, and section it came from.
-A math error found later counts against the review that missed it.
+### C6. Failure frequency chart
+Every project keeps `FAILURES.xlsx` (template: the `Failure Log` and
+`Failure Pareto` sheets of the algo toolbox). Log every failure from this session: date,
+agent, category, description, root cause, fix, recurrence. Update the
+Pareto chart.
+**Done when** this session's failures are logged and the chart is current.
 
-### B6. Summary format
-Write the summary in DMAIC structure: Define, Measure, Analyze, Improve,
-Control. Lead with the verdict, then the evidence.
+### C7. DMAIC summary
+Define, Measure, Analyze, Improve, Control. Verdict first, then evidence.
+**Done when** each phase has at least one measured fact.
 
 ---
 
-## Part C — Push again and report
+## Loop control (any iterate-until-solved work)
+
+- **Stop condition**: the objective's done-when line is true.
+- **Term limits**: stop at whichever comes first: 6 attempts at the same
+  sub-problem, the time budget, or the token budget the owner set. At the
+  limit, write the hand-off plan (B6) and report.
+- **Definition of improvement**: before any improve-and-repeat loop, write
+  the metric, its baseline, the target, and how it is measured. A change
+  counts as improvement only when the metric moves past baseline by more
+  than its measured noise (a significance test at the stated alpha).
+
+---
+
+## Part D: Push again and report
 
 Commit and push everything once more, then report in this shape:
 
@@ -146,13 +187,16 @@ Branch:            <exact branch name>
 Repo:              <owner/repo>
 Category / path:   <engineering category and project folder>
 Phase / status:    <where the procedure stopped>
+Objective score:   <delivered / required = %>, gaps: <list>
 Secured:           <CAD / code / tables / reports / images on the branch>
+Claims retracted:  <count, and which>
 Spreadsheet row:   <updated | created>
 Duplicates found:  <count, and where the canonical copy now lives>
 Versions tracked:  <count, oldest date, newest date>
 Best version:      <version, date, and the reason it won>
 Review scores:     <per version, per rubric, per reviewer; agreement stat>
 Math check:        <passed | errors found and fixed>
-Open unknowns:     <each one, and what you did about it>
-Next step:         <the single next action>
+Failures logged:   <count; top Pareto category>
+Open questions:    <each one, and the search terms or decision needed>
+Next step:         <the single next action, or the hand-off plan path>
 ```
