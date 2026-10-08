@@ -12,6 +12,7 @@ keeps. This is the algorithm the projects improve over time.
 | `build_toolbox.py` | Builds the workbook: `python3 -I build_toolbox.py` |
 | `extract/extract_methods.py` | Deterministic book extractor (PyMuPDF, no language model). |
 | `extract/lexicons.json` | Keyword lexicons: `computational_thinking`, `six_sigma`, `statistics`. |
+| `extract/find_books.py` | Inventories books in Downloads vs Documents by content hash; lists orphans (not yet filed) and duplicates. Read-only. |
 | `extract/selftest.py` | Proves the extractor finds definitions, procedures, pseudocode, named methods, and is byte-deterministic. |
 | `REVIEW_FABLE.md` | Independent technical review (8 errors, 31 suggestions). All 8 errors and the substantive suggestions are applied. |
 
@@ -26,6 +27,14 @@ pending) or `extracted` (from the owner's book, with page cite). Today every
 row is `baseline`; the books are not in the repository.
 
 ## Extracting a book (the runbook)
+
+Run on the owner's machine, where the books live (a cloud session cannot see `~/Downloads`).
+
+0. **Find the books.**
+   ```
+   python3 -I extract/find_books.py ~/Downloads ~/Documents --out ~/Documents/prompts/book_inventory.csv
+   ```
+   ORPHAN rows are books in Downloads with no copy in Documents: file them, then extract.
 
 1. **Extract, deterministically.**
    ```
